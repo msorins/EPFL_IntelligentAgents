@@ -12,7 +12,22 @@ import uchicago.src.sim.engine.SimInit;
  */
 
 
-public class RabbitsGrassSimulationModel extends SimModelImpl {		
+public class RabbitsGrassSimulationModel extends SimModelImpl {
+    // Default values
+    private static final int GRIDSIZE = 20;
+    private static final int NUMINITRABBITS = 4;
+    private static final int NUMINITGRASS = 50;
+    private static final int GRASSGROWTHRATE = 5;
+    private static final int BIRTHTHRESHOLD = 4;
+
+    private Schedule schedule;
+    private RabbitsGrassSimulationSpace space;
+
+    private int gridSize = GRIDSIZE;
+    private int numInitRabbits = NUMINITRABBITS;
+    private int numInitGrass = NUMINITGRASS;
+    private int grassGrowthRate = GRASSGROWTHRATE;
+    private int birthThreshold = BIRTHTHRESHOLD;
 
 		public static void main(String[] args) {
 			
@@ -25,34 +40,93 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 				init.loadModel(model, "", false);
 			else
 				init.loadModel(model, args[0], Boolean.parseBoolean(args[1]));
-			
+
 		}
 
 		public void begin() {
 			// TODO Auto-generated method stub
-			
+            // Called when initialised button is clicked
+            // Should initialise the simulation
+            buildModel();
+            buildSchedule();
+            buildDisplay();
 		}
 
 		public String[] getInitParam() {
 			// TODO Auto-generated method stub
 			// Parameters to be set by users via the Repast UI slider bar
 			// Do "not" modify the parameters names provided in the skeleton code, you can add more if you want 
-			String[] params = { "GridSize", "NumInitRabbits", "NumInitGrass", "GrassGrowthRate", "BirthThreshold"};
+			String[] params = { "gridSize", "numInitRabbits", "numInitGrass", "grassGrowthRate", "birthThreshold"};
 			return params;
 		}
 
 		public String getName() {
-			// TODO Auto-generated method stub
-			return null;
+			return "Rabbits Grass Simulation";
 		}
 
 		public Schedule getSchedule() {
-			// TODO Auto-generated method stub
-			return null;
+			return this.schedule;
 		}
 
 		public void setup() {
 			// TODO Auto-generated method stub
-			
+      // Called when button with two curved arrows is clicked
+      System.out.println("Running setup");
 		}
+
+    public void buildModel(){
+        System.out.println("Running BuildModel");
+    }
+
+    public void buildSchedule(){
+        System.out.println("Running BuildSchedule");
+    }
+
+    public void buildDisplay(){
+        System.out.println("Running BuildDisplay");
+    }
+
+    public void setSchedule(Schedule schedule) {
+        this.schedule = schedule;
+    }
+
+    public int getGridSize() {
+        return gridSize;
+    }
+
+    public void setGridSize(int gridSize) {
+        this.gridSize = gridSize;
+    }
+
+    public int getNumInitRabbits() {
+        return numInitRabbits;
+    }
+
+    public void setNumInitRabbits(int numInitRabbits) {
+        this.numInitRabbits = numInitRabbits;
+    }
+
+    public int getNumInitGrass() {
+        return numInitGrass;
+    }
+
+    public void setNumInitGrass(int numInitGrass) {
+        this.numInitGrass = numInitGrass;
+    }
+
+    public int getGrassGrowthRate() {
+        return grassGrowthRate;
+    }
+
+    public void setGrassGrowthRate(int grassGrowthRate) {
+        this.grassGrowthRate = grassGrowthRate;
+    }
+
+    public int getBirthThreshold() {
+        return birthThreshold;
+    }
+
+    public void setBirthThreshold(int birthThreshold) {
+        this.birthThreshold = birthThreshold;
+    }
 }
