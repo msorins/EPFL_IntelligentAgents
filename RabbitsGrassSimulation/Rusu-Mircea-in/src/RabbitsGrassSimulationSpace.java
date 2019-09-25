@@ -43,13 +43,21 @@ public class RabbitsGrassSimulationSpace {
     return getValueAt(rabbitSpace, x, y);
   }
 
+  public Object2DGrid getGrassSpace() {
+    return grassSpace;
+  }
+
+  public Object2DGrid getRabbitSpace() {
+    return rabbitSpace;
+  }
+
   private void distributeValues(Object2DGrid grid, int total) {
     for (int i = 0; i < total; ++ i) {
       // Choose coordinates
       int x = (int)(Math.random() * grid.getSizeX());
       int y = (int)(Math.random() * grid.getSizeY());
 
-      if (grid.getObjectAt(x, y) == null) {
+      if (isEmpty(grid, x, y)) {
         // Put grass if empty
         grid.putObjectAt(x, y, 1);
       } else {
@@ -57,6 +65,10 @@ public class RabbitsGrassSimulationSpace {
         -- i;
       }
     }
+  }
+
+  private boolean isEmpty(Object2DGrid grid, int x, int y) {
+    return grid.getObjectAt(x, y) == null || (Integer) grid.getObjectAt(x, y) == 0;
   }
 
   private int getValueAt(Object2DGrid grid, int x, int y) {

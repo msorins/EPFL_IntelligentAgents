@@ -1,7 +1,11 @@
-import sun.jvm.hotspot.gc.shared.Space;
 import uchicago.src.sim.engine.Schedule;
 import uchicago.src.sim.engine.SimModelImpl;
 import uchicago.src.sim.engine.SimInit;
+import uchicago.src.sim.gui.ColorMap;
+import uchicago.src.sim.gui.DisplaySurface;
+import uchicago.src.sim.gui.Value2DDisplay;
+
+import java.awt.*;
 
 /**
  * Class that implements the simulation model for the rabbits grass
@@ -21,6 +25,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
   private Schedule schedule;
   private RabbitsGrassSimulationSpace space;
+  private DisplaySurface displaySurf;
 
   private int gridSize = GRIDSIZE;
   private int numInitRabbits = NUMINITRABBITS;
@@ -52,6 +57,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
     buildModel();
     buildSchedule();
     buildDisplay();
+    displaySurf.display();
   }
 
   public String[] getInitParam() {
@@ -75,6 +81,14 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
     // Called when button with two curved arrows is clicked
     System.out.println("Running setup");
     space = null;
+    if (displaySurf != null){
+      displaySurf.dispose();
+    }
+    displaySurf = null;
+
+    displaySurf = new DisplaySurface(this, "Rabbits Grass Simulation Model Window 1");
+
+    registerDisplaySurface("Rabbits Grass Simulation Model Window 1", displaySurf);
   }
 
   public void buildModel(){
@@ -90,6 +104,28 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
   public void buildDisplay() {
     System.out.println("Running BuildDisplay");
+    ColorMap grassColorMap = new ColorMap();
+
+    // No grass is represented as black
+    grassColorMap.mapColor(0, Color.black);
+
+    // Grass is represented as green
+    grassColorMap.mapColor(1, Color.green);
+
+    Value2DDisplay displayGrass =
+        new Value2DDisplay(space.getGrassSpace(), grassColorMap);
+
+    displaySurf.addDisplayable(displayGrass, "Grass");
+
+    ColorMap rabbitColorMap = new ColorMap();
+
+    // Black
+    rabbitColorMap.mapColor(0, 0, 0, 0, 0 /* alpha - transparency */);
+    // White
+    rabbitColorMap.mapColor(1, 255, 255, 255, 0.75 /* alpha - transparency */);
+
+    Value2DDisplay displayRabbit = new Value2DDisplay(space.getRabbitSpace(), rabbitColorMap);
+    displaySurf.addDisplayable(displayRabbit, "Rabbits");
   }
 
   public void setSchedule(Schedule schedule) {
