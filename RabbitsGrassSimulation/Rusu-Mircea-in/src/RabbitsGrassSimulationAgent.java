@@ -7,19 +7,42 @@ import uchicago.src.sim.gui.SimGraphics;
  */
 
 public class RabbitsGrassSimulationAgent implements Drawable {
+  private int x;
+  private int y;
+  private int energy;
 
-	public void draw(SimGraphics arg0) {
+  public RabbitsGrassSimulationAgent(int energy){
+    x = -1;
+    y = -1;
+    this.energy = energy;
+  }
+
+
+  public void draw(SimGraphics arg0) {
 		// TODO Auto-generated method stub
-	}
+  }
 
-	public int getX() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+  public int getEnergy() {
+    return energy;
+  }
 
-	public int getY() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+  public void setEnergy(int energy) {
+    this.energy = energy;
+  }
 
+  public int getX() {
+    return x;
+  }
+
+  public void setX(int x) {
+    this.x = x;
+  }
+
+  public int getY() {
+    return y;
+  }
+
+  public void setY(int y) {
+    this.y = y;
+  }
 }
