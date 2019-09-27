@@ -5,26 +5,17 @@ import uchicago.src.sim.space.Object2DGrid;
  */
 
 public class RabbitsGrassSimulationSpace {
-  private Object2DGrid rabbitSpace;
+  private Object2DGrid agentSpace;
   private Object2DGrid grassSpace;
 
   public RabbitsGrassSimulationSpace(int size) {
-    rabbitSpace = new Object2DGrid(size, size);
+    agentSpace = new Object2DGrid(size, size);
     grassSpace = new Object2DGrid(size, size);
     for(int i = 0; i < size; i++){
       for(int j = 0; j < size; j++){
-        rabbitSpace.putObjectAt(i, j, 0);
         grassSpace.putObjectAt(i, j, 0);
       }
     }
-  }
-
-  public void spreadRabbits(int numInitRabbits) {
-    if (numInitRabbits > rabbitSpace.getSizeX() * rabbitSpace.getSizeY()) {
-      throw new RuntimeException("Too many rabbits");
-    }
-
-    distributeValues(rabbitSpace, numInitRabbits);
   }
 
   public void spreadGrass(int numInitGrass) {
@@ -39,16 +30,39 @@ public class RabbitsGrassSimulationSpace {
     return getValueAt(grassSpace, x, y);
   }
 
-  public int getRabbitAt(int x, int y) {
-    return getValueAt(rabbitSpace, x, y);
+  public int getAgentAt(int x, int y) {
+    return getValueAt(agentSpace, x, y);
   }
 
   public Object2DGrid getGrassSpace() {
     return grassSpace;
   }
 
-  public Object2DGrid getRabbitSpace() {
-    return rabbitSpace;
+  public Object2DGrid getAgentSpace() {
+    return agentSpace;
+  }
+
+  public boolean isCellOccupied(int x, int y){
+    return agentSpace.getObjectAt(x, y) != null;
+  }
+
+  public boolean addAgent(RabbitsGrassSimulationAgent agent){
+    boolean retVal = false;
+    int count = 0;
+    int countLimit = 10 * agentSpace.getSizeX() * agentSpace.getSizeY();
+
+    while((!retVal) && (count < countLimit)){
+      int x = (int)(Math.random()*(agentSpace.getSizeX()));
+      int y = (int)(Math.random()*(agentSpace.getSizeY()));
+      if(isCellOccupied(x, y) == false){
+        agentSpace.putObjectAt(x, y, agent);
+        agent.setXY(x, y);
+        retVal = true;
+      }
+      count++;
+    }
+
+    return retVal;
   }
 
   private void distributeValues(Object2DGrid grid, int total) {

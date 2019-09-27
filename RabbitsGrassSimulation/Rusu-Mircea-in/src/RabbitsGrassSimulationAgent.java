@@ -10,16 +10,19 @@ public class RabbitsGrassSimulationAgent implements Drawable {
   private int x;
   private int y;
   private int energy;
+  private static int IDNumber = 0;
+  private int ID;
 
-  public RabbitsGrassSimulationAgent(int energy){
+  public RabbitsGrassSimulationAgent(int minEnergy, int maxEnergy){
     x = -1;
     y = -1;
-    this.energy = energy;
+    this.energy =
+        (int)((Math.random() * (maxEnergy - minEnergy)) + minEnergy);
+    ID = ++ IDNumber;
   }
 
-
   public void draw(SimGraphics arg0) {
-		// TODO Auto-generated method stub
+    // TODO Auto-generated method stub
   }
 
   public int getEnergy() {
@@ -30,19 +33,28 @@ public class RabbitsGrassSimulationAgent implements Drawable {
     this.energy = energy;
   }
 
-  public int getX() {
-    return x;
+  public void setXY(int x, int y){
+    this.x = x;
+    this.y = y;
   }
 
-  public void setX(int x) {
-    this.x = x;
+  public int getX() {
+    return x;
   }
 
   public int getY() {
     return y;
   }
 
-  public void setY(int y) {
-    this.y = y;
+  public String getID(){
+    return "A-" + ID;
+  }
+
+  public void report(){
+    System.out.println(getID() +
+        " at " +
+        x + ", " + y +
+        " has " +
+        getEnergy() + " energy ");
   }
 }

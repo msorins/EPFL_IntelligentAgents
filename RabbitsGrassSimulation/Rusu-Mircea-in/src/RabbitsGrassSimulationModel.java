@@ -6,6 +6,7 @@ import uchicago.src.sim.gui.DisplaySurface;
 import uchicago.src.sim.gui.Value2DDisplay;
 
 import java.awt.*;
+import java.util.ArrayList;
 
 /**
  * Class that implements the simulation model for the rabbits grass
@@ -26,6 +27,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
   private Schedule schedule;
   private RabbitsGrassSimulationSpace space;
   private DisplaySurface displaySurf;
+  private ArrayList agentList;
 
   private int gridSize = GRIDSIZE;
   private int numInitRabbits = NUMINITRABBITS;
@@ -77,13 +79,15 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
   }
 
   public void setup() {
-    // TODO Auto-generated method stub
     // Called when button with two curved arrows is clicked
     System.out.println("Running setup");
     space = null;
+    agentList = new ArrayList();
+
     if (displaySurf != null){
       displaySurf.dispose();
     }
+
     displaySurf = null;
 
     displaySurf = new DisplaySurface(this, "Rabbits Grass Simulation Model Window 1");
@@ -94,8 +98,15 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
   public void buildModel(){
     System.out.println("Running BuildModel");
     space = new RabbitsGrassSimulationSpace(this.gridSize);
-    space.spreadRabbits(this.numInitRabbits);
     space.spreadGrass(this.numInitGrass);
+
+    for(int i = 0; i < this.numInitRabbits; i++){
+      addNewAgent();
+    }
+    for(int i = 0; i < agentList.size(); i++){
+      RabbitsGrassSimulationAgent agent = (RabbitsGrassSimulationAgent)agentList.get(i);
+      agent.report();
+    }
   }
 
   public void buildSchedule(){
@@ -116,16 +127,12 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
         new Value2DDisplay(space.getGrassSpace(), grassColorMap);
 
     displaySurf.addDisplayable(displayGrass, "Grass");
+  }
 
-    ColorMap rabbitColorMap = new ColorMap();
-
-    // Black
-    rabbitColorMap.mapColor(0, 0, 0, 0, 0 /* alpha - transparency */);
-    // White
-    rabbitColorMap.mapColor(1, 255, 255, 255, 0.75 /* alpha - transparency */);
-
-    Value2DDisplay displayRabbit = new Value2DDisplay(space.getRabbitSpace(), rabbitColorMap);
-    displaySurf.addDisplayable(displayRabbit, "Rabbits");
+  private void addNewAgent(){
+    RabbitsGrassSimulationAgent a = new RabbitsGrassSimulationAgent(1, this.birthThreshold);
+    agentList.add(a);
+    space.addAgent(a);
   }
 
   public void setSchedule(Schedule schedule) {
