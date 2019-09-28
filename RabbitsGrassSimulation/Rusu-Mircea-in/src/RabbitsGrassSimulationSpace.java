@@ -53,27 +53,26 @@ public class RabbitsGrassSimulationSpace {
   }
 
   public boolean isCellOccupied(int x, int y){
-    return agentSpace.getObjectAt(x, y) != null;
+    return agentSpace.getObjectAt(x, y) != null || grassSpace.getValueAt(x, y) != 0.0;
   }
 
   public boolean addAgent(RabbitsGrassSimulationAgent agent){
-    boolean retVal = false;
     int count = 0;
     int countLimit = 10 * agentSpace.getSizeX() * agentSpace.getSizeY();
 
-    while((!retVal) && (count < countLimit)){
+    while (count < countLimit) {
       int x = (int)(Math.random()*(agentSpace.getSizeX()));
       int y = (int)(Math.random()*(agentSpace.getSizeY()));
       if(isCellOccupied(x, y) == false){
         agentSpace.putObjectAt(x, y, agent);
         agent.setXY(x, y);
         agent.setSpace(this);
-        retVal = true;
+        return true;
       }
       count++;
     }
 
-    return retVal;
+    return false;
   }
 
   public void removeAgentAt(int x, int y) {

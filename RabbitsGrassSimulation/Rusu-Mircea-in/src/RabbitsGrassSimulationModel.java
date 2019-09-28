@@ -26,13 +26,17 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
   private static final int NUMINITRABBITS = 4;
   private static final int NUMINITGRASS = 50;
   private static final int GRASSGROWTHRATE = 5;
-  private static final int BIRTHTHRESHOLD = 4;
+  private static final int BIRTHTHRESHOLD = 10;
+  private static final int MINRABBITINITIALENERGY = 5;
+  private static final int MAXRABBITINITIALENERGY = 7;
 
   private int gridSize = GRIDSIZE;
   private int numInitRabbits = NUMINITRABBITS;
   private int numInitGrass = NUMINITGRASS;
   private int grassGrowthRate = GRASSGROWTHRATE;
   private int birthThreshold = BIRTHTHRESHOLD;
+  private int minRabbitInitialEnergy = MINRABBITINITIALENERGY;
+  private int maxRabbitInitialEnergy = MAXRABBITINITIALENERGY;
 
   private Schedule schedule;
   private RabbitsGrassSimulationSpace space;
@@ -78,7 +82,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
     // TODO Auto-generated method stub
     // Parameters to be set by users via the Repast UI slider bar
     // Do "not" modify the parameters names provided in the skeleton code, you can add more if you want
-    String[] params = { "GridSize", "NumInitRabbits", "NumInitGrass", "GrassGrowthRate", "BirthThreshold"};
+    String[] params = { "GridSize", "NumInitRabbits", "NumInitGrass", "GrassGrowthRate", "BirthThreshold", "MinRabbitInitialEnergy", "MaxRabbitInitialEnergy"};
     return params;
   }
 
@@ -140,6 +144,10 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
   public void buildModel(){
     System.out.println("Running BuildModel");
+    if(this.numInitRabbits + this.numInitGrass > this.gridSize * this.gridSize) {
+      throw new Error("Number of rabbits + number of grass bigger than total grid size");
+    }
+    
     space = new RabbitsGrassSimulationSpace(this.gridSize);
     space.spreadGrass(this.numInitGrass);
 
@@ -219,9 +227,9 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
   }
 
   private void addNewAgent(){
-    RabbitsGrassSimulationAgent a = new RabbitsGrassSimulationAgent(1, this.birthThreshold);
+    RabbitsGrassSimulationAgent a = new RabbitsGrassSimulationAgent(Math.min(this.minRabbitInitialEnergy, this.birthThreshold - 1), Math.min(this.maxRabbitInitialEnergy, this.birthThreshold));
     agentList.add(a);
-    space.addAgent(a);
+    System.out.println(space.addAgent(a));
   }
 
   private int countLivingAgents(){
@@ -292,5 +300,21 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
   public void setBirthThreshold(int birthThreshold) {
     this.birthThreshold = birthThreshold;
+  }
+
+  public int getMinRabbitInitialEnergy() {
+    return minRabbitInitialEnergy;
+  }
+
+  public void setMinRabbitInitialEnergy(int minRabbitInitialEnergy) {
+    this.minRabbitInitialEnergy = minRabbitInitialEnergy;
+  }
+
+  public int getMaxRabbitInitialEnergy() {
+    return maxRabbitInitialEnergy;
+  }
+
+  public void setMaxRabbitInitialEnergy(int maxRabbitInitialEnergy) {
+    this.maxRabbitInitialEnergy = maxRabbitInitialEnergy;
   }
 }
