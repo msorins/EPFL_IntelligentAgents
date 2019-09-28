@@ -57,6 +57,7 @@ public class RabbitsGrassSimulationSpace {
       if(isCellOccupied(x, y) == false){
         agentSpace.putObjectAt(x, y, agent);
         agent.setXY(x, y);
+        agent.setSpace(this);
         retVal = true;
       }
       count++;
@@ -64,6 +65,29 @@ public class RabbitsGrassSimulationSpace {
 
     return retVal;
   }
+
+  public void removeAgentAt(int x, int y) {
+    agentSpace.putObjectAt(x, y, null);
+  }
+
+  public int takeEnergyAt(int x, int y) {
+    int energy = getGrassAt(x, y);
+    grassSpace.putObjectAt(x, y, 0);
+    return energy;
+  }
+
+  public boolean moveAgentAt(int x, int y, int newX, int newY) {
+    boolean retVal = false;
+    if (!isCellOccupied(newX, newY)) {
+      RabbitsGrassSimulationAgent agent = (RabbitsGrassSimulationAgent) agentSpace.getObjectAt(x, y);
+      removeAgentAt(x, y);
+      agent.setXY(newX, newY);
+      agentSpace.putObjectAt(newX, newY, agent);
+      retVal = true;
+    }
+    return retVal;
+  }
+
 
   private void distributeValues(Object2DGrid grid, int total) {
     for (int i = 0; i < total; ++ i) {

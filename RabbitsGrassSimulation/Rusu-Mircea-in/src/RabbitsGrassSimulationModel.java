@@ -1,9 +1,12 @@
+import uchicago.src.sim.engine.BasicAction;
 import uchicago.src.sim.engine.Schedule;
 import uchicago.src.sim.engine.SimModelImpl;
 import uchicago.src.sim.engine.SimInit;
 import uchicago.src.sim.gui.ColorMap;
 import uchicago.src.sim.gui.DisplaySurface;
 import uchicago.src.sim.gui.Value2DDisplay;
+import uchicago.src.sim.gui.Object2DDisplay;
+import uchicago.src.sim.util.SimUtilities;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -83,6 +86,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
     System.out.println("Running setup");
     space = null;
     agentList = new ArrayList();
+    schedule = new Schedule(1);
 
     if (displaySurf != null){
       displaySurf.dispose();
@@ -111,6 +115,29 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
   public void buildSchedule(){
     System.out.println("Running BuildSchedule");
+    class CarryDropStep extends BasicAction {
+      public void execute() {
+        SimUtilities.shuffle(agentList);
+
+        for(int i =0; i < agentList.size(); i++){
+          RabbitsGrassSimulationAgent agent = (RabbitsGrassSimulationAgent) agentList.get(i);
+          agent.step();
+        }
+
+        reapDeadAgents();
+        displaySurf.updateDisplay();
+      }
+    }
+
+    schedule.scheduleActionBeginning(0, new CarryDropStep());
+
+    class CarryDropCountLiving extends BasicAction {
+      public void execute(){
+        countLivingAgents();
+      }
+    }
+
+    schedule.scheduleActionAtInterval(10, new CarryDropCountLiving());
   }
 
   public void buildDisplay() {
@@ -126,13 +153,43 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
     Value2DDisplay displayGrass =
         new Value2DDisplay(space.getGrassSpace(), grassColorMap);
 
-    displaySurf.addDisplayable(displayGrass, "Grass");
+    Object2DDisplay displayAgents = new Object2DDisplay(space.getAgentSpace());
+    displayAgents.setObjectList(agentList);
+
+    displaySurf.addDisplayableProbeable(displayGrass, "Grass");
+    displaySurf.addDisplayableProbeable(displayAgents, "Agents");
   }
 
   private void addNewAgent(){
     RabbitsGrassSimulationAgent a = new RabbitsGrassSimulationAgent(1, this.birthThreshold);
     agentList.add(a);
     space.addAgent(a);
+  }
+
+  private int countLivingAgents(){
+    int livingAgents = 0;
+    for(int i = 0; i < agentList.size(); i++) {
+      RabbitsGrassSimulationAgent agent = (RabbitsGrassSimulationAgent) agentList.get(i);
+      if(agent.getEnergy() > 0) {
+        livingAgents++;
+      }
+    }
+    System.out.println("Number of living agents is: " + livingAgents);
+
+    return livingAgents;
+  }
+
+  private int reapDeadAgents(){
+    int count = 0;
+    for(int i = (agentList.size() - 1); i >= 0 ; i--){
+      RabbitsGrassSimulationAgent agent = (RabbitsGrassSimulationAgent) agentList.get(i);
+      if(agent.getEnergy() < 1) {
+        space.removeAgentAt(agent.getX(), agent.getY());
+        agentList.remove(i);
+        count ++;
+      }
+    }
+    return count;
   }
 
   public void setSchedule(Schedule schedule) {
