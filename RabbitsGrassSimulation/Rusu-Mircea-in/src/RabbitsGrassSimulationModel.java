@@ -1,3 +1,4 @@
+import uchicago.src.sim.analysis.*;
 import uchicago.src.sim.engine.BasicAction;
 import uchicago.src.sim.engine.Schedule;
 import uchicago.src.sim.engine.SimModelImpl;
@@ -27,16 +28,34 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
   private static final int GRASSGROWTHRATE = 5;
   private static final int BIRTHTHRESHOLD = 4;
 
-  private Schedule schedule;
-  private RabbitsGrassSimulationSpace space;
-  private DisplaySurface displaySurf;
-  private ArrayList agentList;
-
   private int gridSize = GRIDSIZE;
   private int numInitRabbits = NUMINITRABBITS;
   private int numInitGrass = NUMINITGRASS;
   private int grassGrowthRate = GRASSGROWTHRATE;
   private int birthThreshold = BIRTHTHRESHOLD;
+
+  private Schedule schedule;
+  private RabbitsGrassSimulationSpace space;
+  private DisplaySurface displaySurf;
+  private ArrayList agentList;
+  private OpenSequenceGraph totalGrassInSpace;
+  private OpenHistogram energyDistribution;
+
+  class GrassInSpace implements DataSource, Sequence {
+    public Object execute() {
+      return getSValue();
+    }
+    public double getSValue() {
+      return (double)space.getTotalGrass();
+    }
+  }
+
+  class AgentEnergy implements BinDataSource {
+    public double getBinValue(Object o) {
+      RabbitsGrassSimulationAgent agent = (RabbitsGrassSimulationAgent) o;
+      return agent.getEnergy();
+    }
+  }
 
   public static void main(String[] args) {
 
@@ -53,16 +72,6 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
       init.loadModel(model, args[0], Boolean.parseBoolean(args[1]));
     }
 
-  }
-
-  public void begin() {
-    // TODO Auto-generated method stub
-    // Called when initialised button is clicked
-    // Should initialise the simulation
-    buildModel();
-    buildSchedule();
-    buildDisplay();
-    displaySurf.display();
   }
 
   public String[] getInitParam() {
@@ -88,16 +97,46 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
     agentList = new ArrayList();
     schedule = new Schedule(1);
 
+    // Tear down Displays
     if (displaySurf != null){
       displaySurf.dispose();
     }
-
     displaySurf = null;
 
-    displaySurf = new DisplaySurface(this, "Rabbits Grass Simulation Model Window 1");
+    if (totalGrassInSpace != null) {
+      totalGrassInSpace.dispose();
+    }
+    totalGrassInSpace = null;
 
+    if (energyDistribution != null) {
+      energyDistribution.dispose();
+    }
+    energyDistribution = null;
+
+    // Create Displays
+    displaySurf = new DisplaySurface(this, "Rabbits Grass Simulation Model Window 1");
+    totalGrassInSpace = new OpenSequenceGraph("Amount Of Grass In Space",this);
+    // TODO(cosmin) the next line seems to break
+    // energyDistribution = new OpenHistogram("Agent Energy", 3, 0);
+
+    // Register Displays
     registerDisplaySurface("Rabbits Grass Simulation Model Window 1", displaySurf);
+    this.registerMediaProducer("Plot", totalGrassInSpace);
   }
+
+  public void begin() {
+    // TODO Auto-generated method stub
+    // Called when initialised button is clicked
+    // Should initialise the simulation
+    System.out.println("Running begin()");
+    buildModel();
+    buildSchedule();
+    buildDisplay();
+    displaySurf.display();
+    totalGrassInSpace.display();
+    //energyDistribution.display();
+  }
+
 
   public void buildModel(){
     System.out.println("Running BuildModel");
@@ -138,6 +177,22 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
     }
 
     schedule.scheduleActionAtInterval(10, new CarryDropCountLiving());
+
+    class UpdateGrassInSpace extends BasicAction {
+      public void execute(){
+        totalGrassInSpace.step();
+      }
+    }
+
+    schedule.scheduleActionAtInterval(10, new UpdateGrassInSpace());
+
+    class UpdateAgentEnergy extends BasicAction {
+      public void execute(){
+        energyDistribution.step();
+      }
+    }
+
+    //schedule.scheduleActionAtInterval(1, new UpdateAgentEnergy());
   }
 
   public void buildDisplay() {
@@ -158,6 +213,9 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
     displaySurf.addDisplayableProbeable(displayGrass, "Grass");
     displaySurf.addDisplayableProbeable(displayAgents, "Agents");
+
+    totalGrassInSpace.addSequence("Grass In Space", new GrassInSpace());
+    //energyDistribution.createHistogramItem("Agent Energy", agentList, new AgentEnergy());
   }
 
   private void addNewAgent(){

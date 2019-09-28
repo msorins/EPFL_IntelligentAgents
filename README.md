@@ -1,14 +1,15 @@
 # EPFL Intelligent Agents first homework
 
+Code based mainly on the tutorial from [http://liapc3.epfl.ch/repast/main.htm](http://liapc3.epfl.ch/repast/main.htm).
+
 ## TODO
 
 [ ] Make agents reproducible
-[ ] Next-up: [http://liapc3.epfl.ch/repast/HowTo30.htm](http://liapc3.epfl.ch/repast/HowTo30.htm)
-[ ] Write report
-[ ] Handle colisions
+[ ] Handle collisions
 [ ] Handle no-where to go case
 [ ] Distribute grass at each step
 [ ] How do we handle when some grass was distributed in the current step? Shall we make every move "atomic" in the sense that it will happen instantly? I assume so
+[ ] Write report
 
 ## Assumptions
 

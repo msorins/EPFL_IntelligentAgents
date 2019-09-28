@@ -26,6 +26,16 @@ public class RabbitsGrassSimulationSpace {
     distributeValues(grassSpace, numInitGrass);
   }
 
+  public int getTotalGrass() {
+    int totalGrass = 0;
+    for (int i = 0; i < grassSpace.getSizeX(); i++){
+      for (int j = 0; j < grassSpace.getSizeY(); j++){
+        totalGrass += this.getGrassAt(i, j);
+      }
+    }
+    return totalGrass;
+  }
+
   public int getGrassAt(int x, int y) {
     return getValueAt(grassSpace, x, y);
   }
