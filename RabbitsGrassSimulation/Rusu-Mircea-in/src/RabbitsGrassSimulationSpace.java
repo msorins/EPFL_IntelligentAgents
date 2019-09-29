@@ -19,10 +19,7 @@ public class RabbitsGrassSimulationSpace {
   }
 
   public void spreadGrass(int numInitGrass) {
-    if (numInitGrass > grassSpace.getSizeX() * grassSpace.getSizeY()) {
-      throw new RuntimeException("Too much grass");
-    }
-
+    // Todo check if can distribute that amount of grass
     distributeValues(grassSpace, numInitGrass);
   }
 
@@ -53,13 +50,12 @@ public class RabbitsGrassSimulationSpace {
   }
 
   public boolean isCellOccupied(int x, int y){
-    return agentSpace.getObjectAt(x, y) != null || grassSpace.getValueAt(x, y) != 0.0;
+    return agentSpace.getObjectAt(x, y) != null;
   }
 
   public boolean addAgent(RabbitsGrassSimulationAgent agent){
     int count = 0;
     int countLimit = 10 * agentSpace.getSizeX() * agentSpace.getSizeY();
-
     while (count < countLimit) {
       int x = (int)(Math.random()*(agentSpace.getSizeX()));
       int y = (int)(Math.random()*(agentSpace.getSizeY()));

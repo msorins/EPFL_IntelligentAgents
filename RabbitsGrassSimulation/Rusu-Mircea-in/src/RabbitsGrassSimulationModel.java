@@ -28,7 +28,8 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
   private static final int GRASSGROWTHRATE = 5;
   private static final int BIRTHTHRESHOLD = 10;
   private static final int MINRABBITINITIALENERGY = 5;
-  private static final int MAXRABBITINITIALENERGY = 7;
+  private static final int MAXRABBITINITIALENERGY = 5;
+  private static final int ENERGYTOREPRODUCE = 5;
 
   private int gridSize = GRIDSIZE;
   private int numInitRabbits = NUMINITRABBITS;
@@ -37,6 +38,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
   private int birthThreshold = BIRTHTHRESHOLD;
   private int minRabbitInitialEnergy = MINRABBITINITIALENERGY;
   private int maxRabbitInitialEnergy = MAXRABBITINITIALENERGY;
+  private int energyToReproduce = ENERGYTOREPRODUCE;
 
   private Schedule schedule;
   private RabbitsGrassSimulationSpace space;
@@ -82,7 +84,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
     // TODO Auto-generated method stub
     // Parameters to be set by users via the Repast UI slider bar
     // Do "not" modify the parameters names provided in the skeleton code, you can add more if you want
-    String[] params = { "GridSize", "NumInitRabbits", "NumInitGrass", "GrassGrowthRate", "BirthThreshold", "MinRabbitInitialEnergy", "MaxRabbitInitialEnergy"};
+    String[] params = { "GridSize", "NumInitRabbits", "NumInitGrass", "GrassGrowthRate", "BirthThreshold", "MinRabbitInitialEnergy", "MaxRabbitInitialEnergy", "EnergyToReproduce"};
     return params;
   }
 
@@ -147,7 +149,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
     if(this.numInitRabbits + this.numInitGrass > this.gridSize * this.gridSize) {
       throw new Error("Number of rabbits + number of grass bigger than total grid size");
     }
-    
+
     space = new RabbitsGrassSimulationSpace(this.gridSize);
     space.spreadGrass(this.numInitGrass);
 
@@ -164,14 +166,25 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
     System.out.println("Running BuildSchedule");
     class CarryDropStep extends BasicAction {
       public void execute() {
+        // Function executing at every step
         SimUtilities.shuffle(agentList);
 
+        // Agent(rabbit) will try to eat ~ if food fas spawned directly on top of it
+
+        // Every agent takes a step
         for(int i =0; i < agentList.size(); i++){
           RabbitsGrassSimulationAgent agent = (RabbitsGrassSimulationAgent) agentList.get(i);
           agent.step();
         }
 
+        // Agent(rabbit) will try to eat
+
+        // Agent without energy die
         reapDeadAgents();
+
+        // Distribute new grass
+        space.spreadGrass(grassGrowthRate);
+
         displaySurf.updateDisplay();
       }
     }
@@ -316,5 +329,13 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
   public void setMaxRabbitInitialEnergy(int maxRabbitInitialEnergy) {
     this.maxRabbitInitialEnergy = maxRabbitInitialEnergy;
+  }
+
+  public int getEnergyToReproduce() {
+    return energyToReproduce;
+  }
+
+  public void setEnergyToReproduce(int energyToReproduce) {
+    this.energyToReproduce = energyToReproduce;
   }
 }
