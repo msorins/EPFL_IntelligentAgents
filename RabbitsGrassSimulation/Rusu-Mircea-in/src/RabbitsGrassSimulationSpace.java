@@ -18,9 +18,9 @@ public class RabbitsGrassSimulationSpace {
     }
   }
 
-  public void spreadGrass(int numInitGrass) {
+  public void spreadGrass(int numInitGrass, int energyFromEating) {
     // Todo check if can distribute that amount of grass
-    distributeValues(grassSpace, numInitGrass);
+    distributeValues(grassSpace, numInitGrass, energyFromEating);
   }
 
   public int getTotalGrass() {
@@ -102,7 +102,7 @@ public class RabbitsGrassSimulationSpace {
   }
 
 
-  private void distributeValues(Object2DGrid grid, int total) {
+  private void distributeValues(Object2DGrid grid, int total, int initialValue) {
     for (int i = 0; i < total; ++ i) {
       // Choose coordinates
       int x = (int)(Math.random() * grid.getSizeX());
@@ -110,7 +110,7 @@ public class RabbitsGrassSimulationSpace {
 
       if (isEmpty(grid, x, y)) {
         // Put grass if empty
-        grid.putObjectAt(x, y, 1);
+        grid.putObjectAt(x, y, initialValue);
       } else {
         // Go back one step and try again if non-empty
         -- i;

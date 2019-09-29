@@ -4,7 +4,7 @@ Code based mainly on the tutorial from [http://liapc3.epfl.ch/repast/main.htm](h
 
 ## TODO
 
-[ ] Make agents reproducible
+[x] Make agents reproducible
 
 [ ] Handle collisions
 
