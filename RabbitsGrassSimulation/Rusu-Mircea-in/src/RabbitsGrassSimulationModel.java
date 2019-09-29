@@ -1,8 +1,5 @@
 import uchicago.src.sim.analysis.*;
-import uchicago.src.sim.engine.BasicAction;
-import uchicago.src.sim.engine.Schedule;
-import uchicago.src.sim.engine.SimModelImpl;
-import uchicago.src.sim.engine.SimInit;
+import uchicago.src.sim.engine.*;
 import uchicago.src.sim.gui.ColorMap;
 import uchicago.src.sim.gui.DisplaySurface;
 import uchicago.src.sim.gui.Value2DDisplay;
@@ -137,6 +134,8 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
     // Register Displays
     registerDisplaySurface("Rabbits Grass Simulation Model Window 1", displaySurf);
     this.registerMediaProducer("Plot", grassPerRabbits);
+
+    System.out.println("Finished setup");
   }
 
   public void begin() {
@@ -199,6 +198,12 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
         // Update the display with the changes
         displaySurf.updateDisplay();
+
+        // Stop simulation if no more rabbits
+        if(agentList.size() == 0) {
+          fireSimEvent(new SimEvent(this, SimEvent.STOP_EVENT));
+        }
+
       }
     }
 

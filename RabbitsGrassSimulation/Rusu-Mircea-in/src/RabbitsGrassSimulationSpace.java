@@ -116,7 +116,9 @@ public class RabbitsGrassSimulationSpace {
 
 
   private void distributeValues(Object2DGrid grid, int total, int initialValue) {
-    for (int i = 0; i < total; ++ i) {
+    int tries = 10 * grid.getSizeX() * grid.getSizeY();
+
+    for (int i = 0, crtTry = 0; i < total && crtTry < tries;  ++ i, ++ crtTry) {
       // Choose coordinates
       int x = (int)(Math.random() * grid.getSizeX());
       int y = (int)(Math.random() * grid.getSizeY());
