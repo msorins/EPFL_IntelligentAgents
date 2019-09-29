@@ -14,6 +14,8 @@ Code based mainly on the tutorial from [http://liapc3.epfl.ch/repast/main.htm](h
 
 [x] How do we handle when some grass was distributed in the current step? Shall we make every move "atomic" in the sense that it will happen instantly? ; Look at the action order, I think we only need to make some conventions regarding what to execute in which order
 
+[] Strange bug, REPAST freezes (internally) when we reset and re-run the simulation (just asked, others face the same problem, I think we can leave it like this )
+
 [ ] Write report
 
 

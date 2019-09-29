@@ -20,13 +20,13 @@ import java.util.ArrayList;
 public class RabbitsGrassSimulationModel extends SimModelImpl {
   // Default values
   private static final int GRIDSIZE = 20;
-  private static final int NUMINITRABBITS = 4;
-  private static final int NUMINITGRASS = 50;
+  private static final int NUMINITRABBITS = 5;
+  private static final int NUMINITGRASS = 100;
   private static final int GRASSGROWTHRATE = 5;
   private static final int BIRTHTHRESHOLD = 10;
   private static final int MINRABBITINITIALENERGY = 5;
   private static final int MAXRABBITINITIALENERGY = 5;
-  private static final int ENERGYTOREPRODUCE = 5;
+  private static final int ENERGYLOSTBYREPRODUCING = 5;
   private static final int ENERGYFROMEATING = 3;
 
   private int gridSize = GRIDSIZE;
@@ -36,7 +36,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
   private int birthThreshold = BIRTHTHRESHOLD;
   private int minRabbitInitialEnergy = MINRABBITINITIALENERGY;
   private int maxRabbitInitialEnergy = MAXRABBITINITIALENERGY;
-  private int energyToReproduce = ENERGYTOREPRODUCE;
+  private int energyLostByReproducing = ENERGYLOSTBYREPRODUCING;
   private int energyFromEating = ENERGYFROMEATING;
 
   private Schedule schedule;
@@ -91,7 +91,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
   public String[] getInitParam() {
     // Parameters to be set by users via the Repast UI slider bar
     // Do "not" modify the parameters names provided in the skeleton code, you can add more if you want
-    String[] params = { "GridSize", "NumInitRabbits", "NumInitGrass", "GrassGrowthRate", "BirthThreshold", "MinRabbitInitialEnergy", "MaxRabbitInitialEnergy", "EnergyToReproduce", "EnergyFromEating"};
+    String[] params = { "GridSize", "NumInitRabbits", "NumInitGrass", "GrassGrowthRate", "BirthThreshold", "MinRabbitInitialEnergy", "MaxRabbitInitialEnergy", "EnergyToReproduce", "EnergyLostByReproducing"};
     return params;
   }
 
@@ -185,7 +185,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
           // Try to reproduce the agent
           if(agent.getEnergy() >= birthThreshold) {
-            agent.setEnergy( agent.getEnergy() - energyToReproduce);
+            agent.setEnergy( agent.getEnergy() - energyLostByReproducing);
             addNewAgent();
           }
         }
@@ -352,12 +352,12 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
     this.maxRabbitInitialEnergy = maxRabbitInitialEnergy;
   }
 
-  public int getEnergyToReproduce() {
-    return energyToReproduce;
+  public int getEnergyLostByReproducing() {
+    return energyLostByReproducing;
   }
 
-  public void setEnergyToReproduce(int energyToReproduce) {
-    this.energyToReproduce = energyToReproduce;
+  public void setEnergyLostByReproducing(int energyLostByReproducing) {
+    this.energyLostByReproducing = energyLostByReproducing;
   }
 
   public int getEnergyFromEating() {
