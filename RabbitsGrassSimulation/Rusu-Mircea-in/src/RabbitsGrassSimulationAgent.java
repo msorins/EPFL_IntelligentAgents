@@ -49,8 +49,12 @@ public class RabbitsGrassSimulationAgent implements Drawable {
     int newx = (x + dX[dir] + space.getAgentSpace().getSizeX()) % space.getAgentSpace().getSizeX();
     int newy = (y + dY[dir] + space.getAgentSpace().getSizeY()) % space.getAgentSpace().getSizeY();
 
+    // Eat current
+    energy += space.takeEnergyAt(x, y);
+
+    // Try to move to new position
     if (tryMove(newx, newy)) {
-      // Eat the energy
+      // Eat the next one
       energy += space.takeEnergyAt(x, y);
     }
     // Decrease the energy

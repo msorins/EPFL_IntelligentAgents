@@ -146,10 +146,12 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
   public void buildModel(){
     System.out.println("Running BuildModel");
+    // Check for init params errors
     if(this.numInitRabbits + this.numInitGrass > this.gridSize * this.gridSize) {
       throw new Error("Number of rabbits + number of grass bigger than total grid size");
     }
 
+    // Add grass && rabbits
     space = new RabbitsGrassSimulationSpace(this.gridSize);
     space.spreadGrass(this.numInitGrass);
 
@@ -169,15 +171,11 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
         // Function executing at every step
         SimUtilities.shuffle(agentList);
 
-        // Agent(rabbit) will try to eat ~ if food fas spawned directly on top of it
-
-        // Every agent takes a step
-        for(int i =0; i < agentList.size(); i++){
+        // Every agent takes a step && eat if necessary
+        for(int i = 0; i < agentList.size(); i++){
           RabbitsGrassSimulationAgent agent = (RabbitsGrassSimulationAgent) agentList.get(i);
           agent.step();
         }
-
-        // Agent(rabbit) will try to eat
 
         // Agent without energy die
         reapDeadAgents();
@@ -185,6 +183,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
         // Distribute new grass
         space.spreadGrass(grassGrowthRate);
 
+        // Update the display with the changes
         displaySurf.updateDisplay();
       }
     }

@@ -76,7 +76,10 @@ public class RabbitsGrassSimulationSpace {
   }
 
   public int takeEnergyAt(int x, int y) {
+    // Get energy from grass
     int energy = getGrassAt(x, y);
+
+    // Reset aka delete the grass
     grassSpace.putObjectAt(x, y, 0);
     return energy;
   }
@@ -84,8 +87,13 @@ public class RabbitsGrassSimulationSpace {
   public boolean moveAgentAt(int x, int y, int newX, int newY) {
     boolean retVal = false;
     if (!isCellOccupied(newX, newY)) {
+      // Get crt rabbit agent
       RabbitsGrassSimulationAgent agent = (RabbitsGrassSimulationAgent) agentSpace.getObjectAt(x, y);
+
+      // Remove it
       removeAgentAt(x, y);
+
+      // Set its new position
       agent.setXY(newX, newY);
       agentSpace.putObjectAt(newX, newY, agent);
       retVal = true;

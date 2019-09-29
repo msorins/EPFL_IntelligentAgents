@@ -16,8 +16,6 @@ Code based mainly on the tutorial from [http://liapc3.epfl.ch/repast/main.htm](h
 
 [ ] Write report
 
-[ ] Rabbit / Grass distribution when there are no 
-
 ## Assumptions
 
 The initial energy levels for each rabbit is a random integer between [levelMin, levelMax]. 
