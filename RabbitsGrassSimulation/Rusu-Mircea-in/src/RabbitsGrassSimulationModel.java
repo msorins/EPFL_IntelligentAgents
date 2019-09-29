@@ -222,7 +222,9 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
     class UpdateAgentEnergy extends BasicAction {
       public void execute(){
-        energyDistribution.step();
+        if(agentList.size() != 0) {
+          energyDistribution.step();
+        }
       }
     }
 
