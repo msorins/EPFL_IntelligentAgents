@@ -19,14 +19,14 @@ import java.util.ArrayList;
 
 public class RabbitsGrassSimulationModel extends SimModelImpl {
   // Default values
-  private static final int GRIDSIZE = 20;
-  private static final int NUMINITRABBITS = 5;
-  private static final int NUMINITGRASS = 100;
-  private static final int GRASSGROWTHRATE = 5;
-  private static final int BIRTHTHRESHOLD = 10;
-  private static final int MINRABBITINITIALENERGY = 5;
-  private static final int MAXRABBITINITIALENERGY = 5;
-  private static final int ENERGYLOSTBYREPRODUCING = 5;
+  private static final int GRIDSIZE = 50;
+  private static final int NUMINITRABBITS = 20;
+  private static final int NUMINITGRASS = 1500;
+  private static final int GRASSGROWTHRATE = 10;
+  private static final int BIRTHTHRESHOLD = 20;
+  private static final int MINRABBITINITIALENERGY = 10;
+  private static final int MAXRABBITINITIALENERGY = 10;
+  private static final int ENERGYLOSTBYREPRODUCING = 10;
   private static final int ENERGYFROMEATING = 3;
 
   private int gridSize = GRIDSIZE;
@@ -60,7 +60,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
       return getSValue();
     }
     public double getSValue() {
-      return (double)space.getTotalRabbits() * 10;
+      return (double)space.getTotalRabbits() * 100;
     }
   }
 
