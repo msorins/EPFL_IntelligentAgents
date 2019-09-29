@@ -92,7 +92,6 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
   }
 
   public String[] getInitParam() {
-    // TODO Auto-generated method stub
     // Parameters to be set by users via the Repast UI slider bar
     // Do "not" modify the parameters names provided in the skeleton code, you can add more if you want
     String[] params = { "GridSize", "NumInitRabbits", "NumInitGrass", "GrassGrowthRate", "BirthThreshold", "MinRabbitInitialEnergy", "MaxRabbitInitialEnergy", "EnergyToReproduce", "EnergyFromEating"};
@@ -133,8 +132,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
     // Create Displays
     displaySurf = new DisplaySurface(this, "Rabbits Grass Simulation Model Window 1");
     grassPerRabbits = new OpenSequenceGraph("Grass / Rabbits",this);
-    // TODO(cosmin) the next line seems to break
-    // energyDistribution = new OpenHistogram("Agent Energy", 3, 0);
+    energyDistribution = new OpenHistogram("Agent Energy", 8, 0);
 
     // Register Displays
     registerDisplaySurface("Rabbits Grass Simulation Model Window 1", displaySurf);
@@ -142,7 +140,6 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
   }
 
   public void begin() {
-    // TODO Auto-generated method stub
     // Called when initialised button is clicked
     // Should initialise the simulation
     System.out.println("Running begin()");
@@ -151,7 +148,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
     buildDisplay();
     displaySurf.display();
     grassPerRabbits.display();
-    //energyDistribution.display();
+    energyDistribution.display();
   }
 
 
@@ -229,7 +226,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
       }
     }
 
-    //schedule.scheduleActionAtInterval(1, new UpdateAgentEnergy());
+    schedule.scheduleActionAtInterval(1, new UpdateAgentEnergy());
   }
 
   public void buildDisplay() {
@@ -253,7 +250,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
     grassPerRabbits.addSequence("Grass In Space", new GrassInSpace());
     grassPerRabbits.addSequence("Rabbits In Space", new RabbitsInSpace());
-    //energyDistribution.createHistogramItem("Agent Energy", agentList, new AgentEnergy());
+    energyDistribution.createHistogramItem("Agent Energy", agentList, new AgentEnergy());
   }
 
   private void addNewAgent(){
