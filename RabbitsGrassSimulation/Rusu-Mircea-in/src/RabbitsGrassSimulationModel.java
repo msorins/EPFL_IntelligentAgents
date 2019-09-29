@@ -46,7 +46,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
   private RabbitsGrassSimulationSpace space;
   private DisplaySurface displaySurf;
   private ArrayList agentList;
-  private OpenSequenceGraph totalGrassInSpace;
+  private OpenSequenceGraph grassPerRabbits;
   private OpenHistogram energyDistribution;
 
   class GrassInSpace implements DataSource, Sequence {
@@ -55,6 +55,15 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
     }
     public double getSValue() {
       return (double)space.getTotalGrass();
+    }
+  }
+
+  class RabbitsInSpace implements DataSource, Sequence {
+    public Object execute() {
+      return getSValue();
+    }
+    public double getSValue() {
+      return (double)space.getTotalRabbits() * 10;
     }
   }
 
@@ -111,10 +120,10 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
     }
     displaySurf = null;
 
-    if (totalGrassInSpace != null) {
-      totalGrassInSpace.dispose();
+    if (grassPerRabbits != null) {
+      grassPerRabbits.dispose();
     }
-    totalGrassInSpace = null;
+    grassPerRabbits = null;
 
     if (energyDistribution != null) {
       energyDistribution.dispose();
@@ -123,13 +132,13 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
     // Create Displays
     displaySurf = new DisplaySurface(this, "Rabbits Grass Simulation Model Window 1");
-    totalGrassInSpace = new OpenSequenceGraph("Amount Of Grass In Space",this);
+    grassPerRabbits = new OpenSequenceGraph("Grass / Rabbits",this);
     // TODO(cosmin) the next line seems to break
     // energyDistribution = new OpenHistogram("Agent Energy", 3, 0);
 
     // Register Displays
     registerDisplaySurface("Rabbits Grass Simulation Model Window 1", displaySurf);
-    this.registerMediaProducer("Plot", totalGrassInSpace);
+    this.registerMediaProducer("Plot", grassPerRabbits);
   }
 
   public void begin() {
@@ -141,7 +150,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
     buildSchedule();
     buildDisplay();
     displaySurf.display();
-    totalGrassInSpace.display();
+    grassPerRabbits.display();
     //energyDistribution.display();
   }
 
@@ -208,7 +217,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
     class UpdateGrassInSpace extends BasicAction {
       public void execute(){
-        totalGrassInSpace.step();
+        grassPerRabbits.step();
       }
     }
 
@@ -242,14 +251,15 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
     displaySurf.addDisplayableProbeable(displayGrass, "Grass");
     displaySurf.addDisplayableProbeable(displayAgents, "Agents");
 
-    totalGrassInSpace.addSequence("Grass In Space", new GrassInSpace());
+    grassPerRabbits.addSequence("Grass In Space", new GrassInSpace());
+    grassPerRabbits.addSequence("Rabbits In Space", new RabbitsInSpace());
     //energyDistribution.createHistogramItem("Agent Energy", agentList, new AgentEnergy());
   }
 
   private void addNewAgent(){
     RabbitsGrassSimulationAgent a = new RabbitsGrassSimulationAgent(Math.min(this.minRabbitInitialEnergy, this.birthThreshold - 1), Math.min(this.maxRabbitInitialEnergy, this.birthThreshold));
     agentList.add(a);
-    System.out.println(space.addAgent(a));
+    space.addAgent(a);
   }
 
   private int countLivingAgents(){

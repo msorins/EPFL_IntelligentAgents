@@ -33,6 +33,19 @@ public class RabbitsGrassSimulationSpace {
     return totalGrass;
   }
 
+  public int getTotalRabbits() {
+    int totalRabbits = 0;
+    for (int i = 0; i < agentSpace.getSizeX(); i++){
+      for (int j = 0; j < agentSpace.getSizeY(); j++){
+        if(this.agentSpace.getObjectAt(i, j) != null) {
+          totalRabbits += 1;
+        }
+      }
+    }
+
+    return totalRabbits;
+  }
+
   public int getGrassAt(int x, int y) {
     return getValueAt(grassSpace, x, y);
   }

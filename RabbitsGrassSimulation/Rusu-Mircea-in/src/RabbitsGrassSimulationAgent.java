@@ -43,21 +43,31 @@ public class RabbitsGrassSimulationAgent implements Drawable {
   }
 
   public void step(){
-    int dir = new Random().nextInt(4); // random int in [0, 3]
+    int directionsOrder[] = {0, 1, 2, 3};
+    Utils.shuffleArray(directionsOrder);
 
-    // The following formula makes the grid a torus (no bounds)
-    int newx = (x + dX[dir] + space.getAgentSpace().getSizeX()) % space.getAgentSpace().getSizeX();
-    int newy = (y + dY[dir] + space.getAgentSpace().getSizeY()) % space.getAgentSpace().getSizeY();
-
-    // Eat current
+    // Eat from current position
     energy += space.takeEnergyAt(x, y);
 
-    // Try to move to new position
-    if (tryMove(newx, newy)) {
-      // Eat the next one
-      energy += space.takeEnergyAt(x, y);
+    // Try to move
+    for(int i = 0; i < 4; i++) {
+      int crtOrder = directionsOrder[i];
+
+      // The following formula makes the grid a torus (no bounds)
+      int newx = (x + dX[crtOrder] + space.getAgentSpace().getSizeX()) % space.getAgentSpace().getSizeX();
+      int newy = (y + dY[crtOrder] + space.getAgentSpace().getSizeY()) % space.getAgentSpace().getSizeY();
+
+      // Try to move to new position
+      if (tryMove(newx, newy)) {
+        // Eat the next one
+        energy += space.takeEnergyAt(x, y);
+
+        // We already moved, don't need to move anymore at this step
+        break;
+      }
     }
-    // Decrease the energy
+
+    // Decrease the energy (if we were or not able to move)
     energy --;
   }
 
