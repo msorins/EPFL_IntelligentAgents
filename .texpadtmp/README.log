@@ -1,0 +1,114 @@
+This is XeTeX, Version 3.14159265-2.6-0.999991 (TeX Live 2019) (preloaded format=xelatex 2019.6.14)  29 SEP 2019 15:12
+entering extended mode
+ restricted \write18 enabled.
+ file:line:error style messages enabled.
+ %&-line parsing enabled.
+**README.tex
+(./README.tex
+LaTeX2e <2018-12-01>
+(/usr/local/texlive/2019basic/texmf-dist/tex/latex/base/book.cls
+Document Class: book 2018/09/03 v1.4i Standard LaTeX document class
+(/usr/local/texlive/2019basic/texmf-dist/tex/latex/base/bk12.clo
+File: bk12.clo 2018/09/03 v1.4i Standard LaTeX file (size option)
+)
+\c@part=\count80
+\c@chapter=\count81
+\c@section=\count82
+\c@subsection=\count83
+\c@subsubsection=\count84
+\c@paragraph=\count85
+\c@subparagraph=\count86
+\c@figure=\count87
+\c@table=\count88
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+\bibindent=\dimen102
+) (/usr/local/texlive/2019basic/texmf-dist/tex/latex/graphics/graphicx.sty
+Package: graphicx 2017/06/01 v1.1a Enhanced LaTeX Graphics (DPC,SPQR)
+ (/usr/local/texlive/2019basic/texmf-dist/tex/latex/graphics/keyval.sty
+Package: keyval 2014/10/28 v1.15 key=value parser (DPC)
+\KV@toks@=\toks14
+) (/usr/local/texlive/2019basic/texmf-dist/tex/latex/graphics/graphics.sty
+Package: graphics 2017/06/25 v1.2c Standard LaTeX Graphics (DPC,SPQR)
+ (/usr/local/texlive/2019basic/texmf-dist/tex/latex/graphics/trig.sty
+Package: trig 2016/01/03 v1.10 sin cos tan (DPC)
+) (/usr/local/texlive/2019basic/texmf-dist/tex/latex/graphics-cfg/graphics.cfg
+File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
+)
+Package graphics Info: Driver file: xetex.def on input line 99.
+ (/usr/local/texlive/2019basic/texmf-dist/tex/latex/graphics-def/xetex.def
+File: xetex.def 2017/06/24 v5.0h Graphics/color driver for xetex
+))
+\Gin@req@height=\dimen103
+\Gin@req@width=\dimen104
+) (/usr/local/texlive/2019basic/texmf-dist/tex/latex/fontspec/fontspec.sty (/usr/local/texlive/2019basic/texmf-dist/tex/latex/l3packages/xparse/xparse.sty (/usr/local/texlive/2019basic/texmf-dist/tex/latex/l3kernel/expl3.sty
+Package: expl3 2019-04-06 L3 programming layer (loader) 
+ (/usr/local/texlive/2019basic/texmf-dist/tex/latex/l3kernel/expl3-code.tex
+Package: expl3 2019-04-06 L3 programming layer (code)
+\c_max_int=\count89
+\l_tmpa_int=\count90
+\l_tmpb_int=\count91
+\g_tmpa_int=\count92
+\g_tmpb_int=\count93
+\g__kernel_prg_map_int=\count94
+\c__ior_term_ior=\count95
+\c_log_iow=\count96
+\l_iow_line_count_int=\count97
+\l__iow_line_target_int=\count98
+\l__iow_one_indent_int=\count99
+\l__iow_indent_int=\count100
+\c_zero_dim=\dimen105
+\c_max_dim=\dimen106
+\l_tmpa_dim=\dimen107
+\l_tmpb_dim=\dimen108
+\g_tmpa_dim=\dimen109
+\g_tmpb_dim=\dimen110
+\c_zero_skip=\skip43
+\c_max_skip=\skip44
+\l_tmpa_skip=\skip45
+\l_tmpb_skip=\skip46
+\g_tmpa_skip=\skip47
+\g_tmpb_skip=\skip48
+\c_zero_muskip=\muskip10
+\c_max_muskip=\muskip11
+\l_tmpa_muskip=\muskip12
+\l_tmpb_muskip=\muskip13
+\g_tmpa_muskip=\muskip14
+\g_tmpb_muskip=\muskip15
+\l_keys_choice_int=\count101
+\l__intarray_loop_int=\count102
+\c__intarray_sp_dim=\dimen111
+\g__intarray_font_int=\count103
+\c__fp_leading_shift_int=\count104
+\c__fp_middle_shift_int=\count105
+\c__fp_trailing_shift_int=\count106
+\c__fp_big_leading_shift_int=\count107
+\c__fp_big_middle_shift_int=\count108
+\c__fp_big_trailing_shift_int=\count109
+\c__fp_Bigg_leading_shift_int=\count110
+\c__fp_Bigg_middle_shift_int=\count111
+\c__fp_Bigg_trailing_shift_int=\count112
+\g__fp_array_int=\count113
+\l__fp_array_loop_int=\count114
+\l__sort_length_int=\count115
+\l__sort_min_int=\count116
+\l__sort_top_int=\count117
+\l__sort_max_int=\count118
+\l__sort_true_max_int=\count119
+\l__sort_block_int=\count120
+\l__sort_begin_int=\count121
+\l__sort_end_int=\count122
+\l__sort_A_int=\count123
+\l__sort_B_int=\count124
+\l__sort_C_int=\count125
+\l__tl_analysis_normal_int=\count126
+\l__tl_analysis_index_int=\count127
+\l__tl_analysis_nesting_int=\count128
+\l__tl_analysis_type_int=\count129
+\l__regex_internal_a_int=\count130
+\l__regex_internal_b_int=\count131
+\l__regex_internal_c_int=\count132
+\l__regex_balance_int=\count133
+\l__regex_group_level_int=\count134
+\l__regex_mode_int=\count135
+\c__regex_cs_in_class

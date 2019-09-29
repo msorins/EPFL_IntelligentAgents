@@ -201,7 +201,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
         // Stop simulation if no more rabbits
         if(agentList.size() == 0) {
-          fireSimEvent(new SimEvent(this, SimEvent.STOP_EVENT));
+//          fireSimEvent(new SimEvent(this, SimEvent.STOP_EVENT));
         }
 
       }
@@ -215,7 +215,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
       }
     }
 
-    schedule.scheduleActionAtInterval(10, new CarryDropCountLiving());
+    schedule.scheduleActionAtInterval(1, new CarryDropCountLiving());
 
     class UpdateGrassInSpace extends BasicAction {
       public void execute(){
@@ -223,7 +223,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
       }
     }
 
-    schedule.scheduleActionAtInterval(10, new UpdateGrassInSpace());
+    schedule.scheduleActionAtInterval(1, new UpdateGrassInSpace());
 
     class UpdateAgentEnergy extends BasicAction {
       public void execute(){
