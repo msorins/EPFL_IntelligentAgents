@@ -4,7 +4,7 @@ Code based mainly on the tutorial from [http://liapc3.epfl.ch/repast/main.htm](h
 
 ## TODO
 
-[ ] Running simulation
+[x] Running simulation
 
 The main function accepts two arguments:
 
@@ -12,7 +12,9 @@ args[0]: the parameter file to specify the variable values in the slider bar. By
 args[1]: whether to use batch mode to run a simulation. By default, we set it to false to use the GUI mode.
 Remark: we only require you to implement the GUI model in this project. If you want to play with the parameter file and the batch model, feel free to so. In this case, you can use your IDE to pass these to arguments. For example, in Eclipse, you can edit them through "Run Configuration". 
 Before you submit your final version, please make sure that your runnable jar file can also be executed with passing the two arguments. for example, try the following command:
+```
 java -jar ***.jar "" false
+```
 
 [x] Make agents reproducible
 
@@ -24,9 +26,9 @@ java -jar ***.jar "" false
 
 [x] How do we handle when some grass was distributed in the current step? Shall we make every move "atomic" in the sense that it will happen instantly? ; Look at the action order, I think we only need to make some conventions regarding what to execute in which order
 
-[] Strange bug, REPAST freezes (internally) when we reset and re-run the simulation (just asked, others face the same problem, I think we can leave it like this )
+[ ] Strange bug, REPAST freezes (internally) when we reset and re-run the simulation (just asked, others face the same problem, I think we can leave it like this )
 
-[ ] Write report
+[x] Write report
 
 
 ## Action order

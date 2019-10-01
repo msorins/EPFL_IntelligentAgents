@@ -71,3 +71,4 @@ fabric.properties
 
 .DS_Store
 !lib/*.jar
+.texpadtmp/
