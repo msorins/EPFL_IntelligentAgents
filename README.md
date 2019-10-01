@@ -4,6 +4,16 @@ Code based mainly on the tutorial from [http://liapc3.epfl.ch/repast/main.htm](h
 
 ## TODO
 
+[ ] Running simulation
+
+The main function accepts two arguments:
+
+args[0]: the parameter file to specify the variable values in the slider bar. By default, we set it to "" such that you can manually modify them in the GUI.
+args[1]: whether to use batch mode to run a simulation. By default, we set it to false to use the GUI mode.
+Remark: we only require you to implement the GUI model in this project. If you want to play with the parameter file and the batch model, feel free to so. In this case, you can use your IDE to pass these to arguments. For example, in Eclipse, you can edit them through "Run Configuration". 
+Before you submit your final version, please make sure that your runnable jar file can also be executed with passing the two arguments. for example, try the following command:
+java -jar ***.jar "" false
+
 [x] Make agents reproducible
 
 [x] Handle collisions; Rabbits will not go / spawn on other rabbits. Grass wil not spawn on other grass. If grass is spawned on Rabbit, it is instantly eaten by rabbit

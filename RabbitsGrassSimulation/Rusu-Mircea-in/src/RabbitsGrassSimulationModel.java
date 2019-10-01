@@ -25,9 +25,11 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
   private static final int GRASSGROWTHRATE = 10;
   private static final int BIRTHTHRESHOLD = 20;
   private static final int MINRABBITINITIALENERGY = 10;
-  private static final int MAXRABBITINITIALENERGY = 10;
+  private static final int MAXRABBITINITIALENERGY = 20;
   private static final int ENERGYLOSTBYREPRODUCING = 10;
-  private static final int ENERGYFROMEATING = 3;
+  private static final int ENERGYFROMEATING = 5;
+  private static final int ENERGYLOSTBYMOVING = 1;
+  private static final double EPS = 0.000001;
 
   private int gridSize = GRIDSIZE;
   private int numInitRabbits = NUMINITRABBITS;
@@ -38,6 +40,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
   private int maxRabbitInitialEnergy = MAXRABBITINITIALENERGY;
   private int energyLostByReproducing = ENERGYLOSTBYREPRODUCING;
   private int energyFromEating = ENERGYFROMEATING;
+  private int energyLostByMoving = ENERGYLOSTBYMOVING;
 
   private Schedule schedule;
   private RabbitsGrassSimulationSpace space;
@@ -91,7 +94,18 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
   public String[] getInitParam() {
     // Parameters to be set by users via the Repast UI slider bar
     // Do "not" modify the parameters names provided in the skeleton code, you can add more if you want
-    String[] params = { "GridSize", "NumInitRabbits", "NumInitGrass", "GrassGrowthRate", "BirthThreshold", "MinRabbitInitialEnergy", "MaxRabbitInitialEnergy", "EnergyToReproduce", "EnergyLostByReproducing"};
+    String[] params = {
+        "GridSize",
+        "NumInitRabbits",
+        "NumInitGrass",
+        "GrassGrowthRate",
+        "BirthThreshold",
+        "MinRabbitInitialEnergy",
+        "MaxRabbitInitialEnergy",
+        "EnergyToReproduce",
+        "EnergyLostByReproducing",
+        "EnergyFromEating",
+        "EnergyLostByMoving"};
     return params;
   }
 
@@ -153,6 +167,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
 
   public void buildModel(){
     System.out.println("Running BuildModel");
+
     // Check for init params errors
     if(this.numInitRabbits + this.numInitGrass > this.gridSize * this.gridSize) {
       throw new Error("Number of rabbits + number of grass bigger than total grid size");
@@ -190,11 +205,18 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
           }
         }
 
-        // Agent without energy die
-        reapDeadAgents();
-
         // Distribute new grass
         space.spreadGrass(grassGrowthRate, energyFromEating);
+
+        // Let rabbits eat some grass that they might have received randomly
+
+        for(int i = 0; i < agentList.size(); i++) {
+          RabbitsGrassSimulationAgent agent = (RabbitsGrassSimulationAgent) agentList.get(i);
+          agent.eat();
+        }
+
+        // Agent without energy die
+        reapDeadAgents();
 
         // Update the display with the changes
         displaySurf.updateDisplay();
@@ -244,7 +266,7 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
     grassColorMap.mapColor(0, Color.black);
 
     // Grass is represented as green
-    grassColorMap.mapColor(ENERGYFROMEATING, Color.green);
+    grassColorMap.mapColor(energyFromEating, Color.green);
 
     Value2DDisplay displayGrass =
         new Value2DDisplay(space.getGrassSpace(), grassColorMap);
@@ -256,14 +278,18 @@ public class RabbitsGrassSimulationModel extends SimModelImpl {
     displaySurf.addDisplayableProbeable(displayAgents, "Agents");
 
     grassPerRabbits.addSequence("Grass In Space", new GrassInSpace());
-    grassPerRabbits.addSequence("Rabbits In Space", new RabbitsInSpace());
+    grassPerRabbits.addSequence("100 * Rabbits In Space", new RabbitsInSpace());
     energyDistribution.createHistogramItem("Agent Energy", agentList, new AgentEnergy());
   }
 
   private void addNewAgent(){
-    RabbitsGrassSimulationAgent a = new RabbitsGrassSimulationAgent(Math.min(this.minRabbitInitialEnergy, this.birthThreshold - 1), Math.min(this.maxRabbitInitialEnergy, this.birthThreshold));
+    RabbitsGrassSimulationAgent a = new RabbitsGrassSimulationAgent(
+        Math.min(this.minRabbitInitialEnergy, this.birthThreshold - 2),
+        Math.min(this.maxRabbitInitialEnergy, this.birthThreshold - 1),
+        this.energyLostByMoving);
     agentList.add(a);
     space.addAgent(a);
+    a.eat();
   }
 
   private int countLivingAgents(){

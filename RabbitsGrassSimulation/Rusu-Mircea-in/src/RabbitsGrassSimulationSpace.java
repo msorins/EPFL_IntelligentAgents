@@ -19,7 +19,6 @@ public class RabbitsGrassSimulationSpace {
   }
 
   public void spreadGrass(int numInitGrass, int energyFromEating) {
-    // Todo check if can distribute that amount of grass
     distributeValues(grassSpace, numInitGrass, energyFromEating);
   }
 

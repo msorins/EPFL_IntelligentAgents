@@ -2,7 +2,6 @@ import uchicago.src.sim.gui.Drawable;
 import uchicago.src.sim.gui.SimGraphics;
 
 import java.awt.*;
-import java.util.Random;
 
 
 /**
@@ -13,6 +12,7 @@ public class RabbitsGrassSimulationAgent implements Drawable {
   private int x;
   private int y;
   private int energy;
+  private int energyLostByMoving;
   private static int IDNumber = 0;
   private int ID;
   private RabbitsGrassSimulationSpace space;
@@ -20,11 +20,12 @@ public class RabbitsGrassSimulationAgent implements Drawable {
   private static int[] dX = {0, 1,  0, -1};
   private static int[] dY = {1, 0, -1,  0};
 
-  public RabbitsGrassSimulationAgent(int minEnergy, int maxEnergy){
+  public RabbitsGrassSimulationAgent(int minEnergy, int maxEnergy, int energyLostByMoving){
     x = -1;
     y = -1;
     this.energy =
         (int)((Math.random() * (maxEnergy - minEnergy)) + minEnergy);
+    this.energyLostByMoving = energyLostByMoving;
     ID = ++ IDNumber;
   }
 
@@ -34,11 +35,11 @@ public class RabbitsGrassSimulationAgent implements Drawable {
 
   public void draw(SimGraphics G) {
     if (energy > 0) {
-      G.drawFastRoundRect(Color.blue);
+      G.drawFastRoundRect(Color.red);
     }
     else {
       // dead 💀
-      G.drawFastRoundRect(Color.red);
+      G.drawFastRoundRect(Color.white);
     }
   }
 
@@ -60,7 +61,9 @@ public class RabbitsGrassSimulationAgent implements Drawable {
       // Try to move to new position
       if (tryMove(newx, newy)) {
         // Eat the next one
-        energy += space.takeEnergyAt(x, y);
+        eat();
+
+        energy -= this.energyLostByMoving;
 
         // We already moved, don't need to move anymore at this step
         break;
@@ -68,7 +71,7 @@ public class RabbitsGrassSimulationAgent implements Drawable {
     }
 
     // Decrease the energy (if we were or not able to move)
-    energy --;
+    energy -= this.energyLostByMoving;
   }
 
   public int getEnergy() {
@@ -102,6 +105,10 @@ public class RabbitsGrassSimulationAgent implements Drawable {
         x + ", " + y +
         " has " +
         getEnergy() + " energy ");
+  }
+
+  public void eat() {
+    energy += space.takeEnergyAt(x, y);
   }
 
   private boolean tryMove(int newX, int newY) {
