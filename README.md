@@ -29,6 +29,8 @@ java -jar ***.jar "" false
 [ ] Strange bug, REPAST freezes (internally) when we reset and re-run the simulation (just asked, others face the same problem, I think we can leave it like this )
 
 [x] Write report
+[ ] Review report
+[ ] Submit
 
 
 ## Action order
