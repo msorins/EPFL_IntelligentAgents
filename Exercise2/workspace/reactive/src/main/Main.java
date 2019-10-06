@@ -4,7 +4,8 @@ import logist.LogistPlatform;
 
 public class Main {
   public static void main(String[] args) {
-    String argsToSend[] = {"config/reactive.xml", "reactive-random"};
-    LogistPlatform.main(argsToSend);
+    String randomAgent[] = {"config/reactive.xml", "reactive-random"};
+    String reactiveAgent[] = {"config/reactive.xml", "reactive-agent"};
+    LogistPlatform.main(randomAgent);
   }
 }
