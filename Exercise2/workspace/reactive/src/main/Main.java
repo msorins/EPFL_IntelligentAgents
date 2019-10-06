@@ -6,6 +6,6 @@ public class Main {
   public static void main(String[] args) {
     String randomAgent[] = {"config/reactive.xml", "reactive-random"};
     String reactiveAgent[] = {"config/reactive.xml", "reactive-agent"};
-    LogistPlatform.main(randomAgent);
+    LogistPlatform.main(reactiveAgent);
   }
 }

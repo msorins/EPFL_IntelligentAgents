@@ -62,8 +62,6 @@ class MoveAction extends AgentAction {
 
 public class ReactiveAgent implements ReactiveBehavior {
 
-  private Random random;
-  private double pPickup;
   private int numActions;
   private Agent myAgent;
   private Topology topology;
@@ -88,14 +86,6 @@ public class ReactiveAgent implements ReactiveBehavior {
 
   @Override
   public void setup(Topology topology, TaskDistribution td, Agent agent) {
-
-    // Reads the discount factor from the agents.xml file.
-    // If the property is not present it defaults to 0.95
-    Double discount = agent.readProperty("discount-factor", Double.class,
-        0.95);
-
-    this.random = new Random();
-    this.pPickup = discount;
     this.numActions = 0;
     this.topology = topology;
     this.td = td;
@@ -139,11 +129,15 @@ public class ReactiveAgent implements ReactiveBehavior {
   private double R(State s, AgentAction action) {
     if (action instanceof PickupAction) {
       // reward of the package - distance to the next city
-      return this.td.reward(s.getCurrent(), s.getPackageDest()) - s.getCurrent().distanceTo(s.getPackageDest());
+      if (s.getCurrent() == s.getPackageDest()) {
+        return this.td.reward(s.getCurrent(), s.getPackageDest());
+      } else {
+        return this.td.reward(s.getCurrent(), s.getPackageDest()) / s.getCurrent().distanceTo(s.getPackageDest());
+      }
     } else if (action instanceof MoveAction) {
-      // negative reward if we don't pick anything
+      // 0 reward if we don't pick anything
       MoveAction move = (MoveAction) action;
-      return -s.getCurrent().distanceUnitsTo(move.neighbour);
+      return 0; // -s.getCurrent().distanceUnitsTo(move.neighbour);
     } else {
       throw new RuntimeException("Unknown action for reward");
     }
@@ -182,7 +176,7 @@ public class ReactiveAgent implements ReactiveBehavior {
     Q = new double[(this.numCities() + 1) * this.numCities()][this.numCities() + 1];
 
     for (int i = 0; i < V.length; ++i) {
-      V[i] = Integer.MIN_VALUE;
+      V[i] = Double.MIN_VALUE;
     }
 
     // Number of cities
