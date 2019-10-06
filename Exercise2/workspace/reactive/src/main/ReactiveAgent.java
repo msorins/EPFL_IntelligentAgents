@@ -109,7 +109,7 @@ public class ReactiveAgent implements ReactiveBehavior {
     Action action;
 
     State s = new State(vehicle.getCurrentCity(), null);
-    if (availableTask != null && !(random.nextDouble() > pPickup)) {
+    if (availableTask != null) {
       if (vehicle.getCurrentCity() == availableTask.pickupCity) {
         s = new State(vehicle.getCurrentCity(), availableTask.deliveryCity);
       } else {
