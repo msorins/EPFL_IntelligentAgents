@@ -137,7 +137,7 @@ public class ReactiveAgent implements ReactiveBehavior {
     } else if (action instanceof MoveAction) {
       // 0 reward if we don't pick anything
       MoveAction move = (MoveAction) action;
-      return 0; // -s.getCurrent().distanceUnitsTo(move.neighbour);
+      return -1 / s.getCurrent().distanceTo(move.neighbour);
     } else {
       throw new RuntimeException("Unknown action for reward");
     }
@@ -176,7 +176,7 @@ public class ReactiveAgent implements ReactiveBehavior {
     Q = new double[(this.numCities() + 1) * this.numCities()][this.numCities() + 1];
 
     for (int i = 0; i < V.length; ++i) {
-      V[i] = Double.MIN_VALUE;
+      V[i] = -100000;
     }
 
     // Number of cities
