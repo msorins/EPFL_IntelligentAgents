@@ -68,7 +68,7 @@ public class ReactiveAgent implements ReactiveBehavior {
   private Agent myAgent;
   private Topology topology;
   private TaskDistribution td;
-  private double gamma = 0.9;
+  private double gamma = 0.95;
 
   private double[] V;
   private int[] bestV;
@@ -109,12 +109,8 @@ public class ReactiveAgent implements ReactiveBehavior {
     Action action;
 
     State s = new State(vehicle.getCurrentCity(), null);
-    if (availableTask != null) {
-      if (vehicle.getCurrentCity() == availableTask.pickupCity) {
-        s = new State(vehicle.getCurrentCity(), availableTask.deliveryCity);
-      } else {
-        s = new State(vehicle.getCurrentCity(), null);
-      }
+    if (availableTask != null && vehicle.getCurrentCity() == availableTask.pickupCity) {
+      s = new State(vehicle.getCurrentCity(), availableTask.deliveryCity);
     }
 
     AgentAction agentAction = decode(bestV[s.encode(this.numCities())], this.numCities(), this.topology);
