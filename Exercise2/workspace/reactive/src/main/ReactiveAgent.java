@@ -66,7 +66,7 @@ public class ReactiveAgent implements ReactiveBehavior {
   private Agent myAgent;
   private Topology topology;
   private TaskDistribution td;
-  private double gamma = 0.95;
+  private double gamma = 0.99;
 
   private double[] V;
   private int[] bestV;
@@ -137,7 +137,7 @@ public class ReactiveAgent implements ReactiveBehavior {
     } else if (action instanceof MoveAction) {
       // 0 reward if we don't pick anything
       MoveAction move = (MoveAction) action;
-      return -1 / s.getCurrent().distanceTo(move.neighbour);
+      return -  1 /  (1 + Math.exp(-s.getCurrent().distanceTo(move.neighbour)));
     } else {
       throw new RuntimeException("Unknown action for reward");
     }
