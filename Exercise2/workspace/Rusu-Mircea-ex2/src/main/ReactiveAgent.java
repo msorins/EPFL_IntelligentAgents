@@ -129,15 +129,17 @@ public class ReactiveAgent implements ReactiveBehavior {
   private double R(State s, AgentAction action) {
     if (action instanceof PickupAction) {
       // reward of the package - distance to the next city
-      if (s.getCurrent() == s.getPackageDest()) {
-        return this.td.reward(s.getCurrent(), s.getPackageDest());
-      } else {
-        return this.td.reward(s.getCurrent(), s.getPackageDest()) / s.getCurrent().distanceTo(s.getPackageDest());
-      }
+      return this.td.reward(s.getCurrent(), s.getPackageDest()) - s.getCurrent().distanceTo(s.getPackageDest());
+//      if (s.getCurrent() == s.getPackageDest()) {
+//        return this.td.reward(s.getCurrent(), s.getPackageDest());
+//      } else {
+//        return this.td.reward(s.getCurrent(), s.getPackageDest()) / s.getCurrent().distanceTo(s.getPackageDest());
+//      }
     } else if (action instanceof MoveAction) {
       // 0 reward if we don't pick anything
       MoveAction move = (MoveAction) action;
-      return -  1 /  (1 + Math.exp(-s.getCurrent().distanceTo(move.neighbour)));
+//      return -  1 /  (1 + Math.exp(-s.getCurrent().distanceTo(move.neighbour)));
+      return -s.getCurrent().distanceTo(move.neighbour);
     } else {
       throw new RuntimeException("Unknown action for reward");
     }
