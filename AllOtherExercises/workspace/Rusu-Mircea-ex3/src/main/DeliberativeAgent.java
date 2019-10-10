@@ -4,6 +4,7 @@ package main;
 
 import logist.agent.Agent;
 import logist.behavior.DeliberativeBehavior;
+import logist.plan.Action;
 import logist.plan.Plan;
 import logist.simulation.Vehicle;
 import logist.task.Task;
@@ -12,10 +13,79 @@ import logist.task.TaskSet;
 import logist.topology.Topology;
 import logist.topology.Topology.City;
 
+import java.util.*;
+
 /**
  * An optimal planner for one vehicle.
  */
-@SuppressWarnings("unused")
+
+class State {
+	// State
+	private City currentCity;
+	private HashSet<Task> delivering;
+	private HashSet<Task> delivered;
+
+	// Extra info
+	private Integer totalAgentCapacity;
+
+	public State(City currentCity, HashSet<Task> delivering, HashSet<Task> delivered, Integer totalAgentCapacity) {
+		this.currentCity = currentCity;
+		this.delivering = delivering;
+		this.delivered = delivered;
+		this.totalAgentCapacity = totalAgentCapacity;
+	}
+
+	public void setCurrentCity(City currentCity) {
+		this.currentCity = currentCity;
+	}
+
+	public City getCurrentCity() {
+		return currentCity;
+	}
+
+	public Set<Task> getDelivering() {
+		return delivering;
+	}
+
+	public Set<Task> getDelivered() {
+		return delivered;
+	}
+
+	public Integer getTotalAgentCapacity() {
+		return totalAgentCapacity;
+	}
+
+	public Integer getCurrentAgentCapacity() {
+		int agentLeftCapacity = totalAgentCapacity;
+		for(Task task: delivering) {
+			agentLeftCapacity -= task.weight;
+		}
+
+		return agentLeftCapacity;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		State state = (State) o;
+		return Objects.equals(currentCity, state.currentCity) &&
+				Objects.equals(delivering, state.delivering) &&
+				Objects.equals(delivered, state.delivered) &&
+				Objects.equals(totalAgentCapacity, state.totalAgentCapacity);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(currentCity, delivering, delivered, totalAgentCapacity);
+	}
+
+	@Override
+	protected State clone() {
+		return new State(this.currentCity, (HashSet<Task>) this.delivering.clone(), (HashSet<Task>) this.delivered.clone(), this.totalAgentCapacity);
+	}
+}
+
 public class DeliberativeAgent implements DeliberativeBehavior {
 
 	enum Algorithm { BFS, ASTAR }
@@ -43,8 +113,6 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 		
 		// Throws IllegalArgumentException if algorithm is unknown
 		algorithm = Algorithm.valueOf(algorithmName.toUpperCase());
-		
-		// ...
 	}
 	
 	@Override
@@ -59,7 +127,7 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 			break;
 		case BFS:
 			// ...
-			plan = naivePlan(vehicle, tasks);
+			plan = bfsPlan(vehicle, tasks);
 			break;
 		default:
 			throw new AssertionError("Should not happen.");
@@ -70,6 +138,12 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 	private Plan naivePlan(Vehicle vehicle, TaskSet tasks) {
 		City current = vehicle.getCurrentCity();
 		Plan plan = new Plan(current);
+
+		// SOME LOGS FOR DEBUGGING
+		tasks.iterator().forEachRemaining(act -> {
+			System.out.println(act.id + ": (" + act.weight + "-" + act.reward +") (" + act.pickupCity + "->" + act.deliveryCity + ")");
+		});
+		System.out.println("######");
 
 		for (Task task : tasks) {
 			// move: current city => pickup location
@@ -88,6 +162,105 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 			current = task.deliveryCity;
 		}
 		return plan;
+	}
+
+	private Plan bfsPlan(Vehicle vehicle, TaskSet tasks) {
+		// The BFS is going to iterate through all the possible state and return the most rewarding plan
+		Plan bestPlan = doBfs(
+				new HashSet<State>(),
+				new State(vehicle.getCurrentCity(), new HashSet<Task>(), new HashSet<Task>(), vehicle.capacity()),
+				new Plan(vehicle.getCurrentCity()),
+				tasks
+		);
+		System.out.println("Best plan has been computed( " + bestPlan.totalDistance() + " ): " + bestPlan.toString());
+		return bestPlan;
+	}
+
+	private Plan copyPlan(City fromCity, Plan otherPlan) {
+		List<Action> actions = new ArrayList<Action>();
+		otherPlan.seal();
+		otherPlan.iterator().forEachRemaining(actions::add);
+		return new Plan(fromCity, actions);
+	}
+
+	private Plan doBfs(HashSet<State> statesMap, State state, Plan plan, TaskSet tasksLeft) {
+		// Check if we are in a final state (of success)
+		if(tasksLeft.size() == 0 && state.getDelivering().size() == 0) {
+			plan.seal();
+			return plan;
+		}
+		Plan bestPlan = null;
+
+		// Deliver tasks
+		List<Task> toAppend = new ArrayList<Task>();
+		state.getDelivering().iterator().forEachRemaining(task -> {
+			if(task.deliveryCity == state.getCurrentCity()) {
+				toAppend.add(task);
+			}
+		});
+		toAppend.forEach(task -> {
+			plan.appendDelivery(task);
+			state.getDelivering().remove(task);
+			state.getDelivered().add(task);
+		});
+
+		// Add the state to the map
+		statesMap.add(state);
+
+		// Pick up tasks
+		for(Task task: tasksLeft) {
+			// Check if agent has capacity to pick up
+			if(state.getCurrentAgentCapacity() >= task.weight) {
+				// Deep copy params for new recursion (so that we avoid java.util.ConcurrentModificationException)
+				State newState = state.clone();
+				newState.getDelivering().add(task);
+
+				Plan newPlan = copyPlan(state.getCurrentCity(), plan);
+				newPlan.appendPickup(task);
+
+				TaskSet newTasksLeft = tasksLeft.clone();
+				newTasksLeft.remove(task);
+
+				// Go in recursion
+				Plan bfsPlan = null;
+				if(!statesMap.contains(newState)) {
+					bfsPlan = doBfs(statesMap, newState, newPlan, newTasksLeft);
+				}
+
+				// Check if branch returned a better solution
+				// better = distance until all task completed is lower
+				if(bfsPlan != null && (bestPlan == null || bfsPlan.totalDistance() < bestPlan.totalDistance())) {
+					bestPlan = bfsPlan;
+				}
+			}
+		}
+
+		// Move to other city
+		for(City toCity: state.getCurrentCity().neighbors()) {
+			// Deep copy params for new recursion (so that we avoid java.util.ConcurrentModificationException)
+			State newState = state.clone();
+			newState.setCurrentCity(toCity);
+
+			Plan newPlan = copyPlan(state.getCurrentCity(), plan);
+			newPlan.appendMove(toCity);
+
+			TaskSet newTasksLeft = tasksLeft.clone();
+
+			// Go in recursion
+			Plan bfsPlan = null;
+			if(!statesMap.contains(newState)) {
+				bfsPlan = doBfs(statesMap, newState, newPlan, newTasksLeft);
+			}
+
+			// Check if branch returned a better solution
+			// better = distance until all task completed is lower
+			if(bfsPlan != null && (bestPlan == null || bfsPlan.totalDistance() < bestPlan.totalDistance())) {
+				bestPlan = bfsPlan;
+			}
+		}
+
+		// Return the most optim plan
+		return bestPlan;
 	}
 
 	@Override

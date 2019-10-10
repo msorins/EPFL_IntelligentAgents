@@ -62,7 +62,9 @@ public class DeliberativeTemplate implements DeliberativeBehavior {
 			break;
 		default:
 			throw new AssertionError("Should not happen.");
-		}		
+		}
+
+		System.out.println("plan has been computed( " + plan.totalDistance() + " ): " + plan.toString());
 		return plan;
 	}
 	
