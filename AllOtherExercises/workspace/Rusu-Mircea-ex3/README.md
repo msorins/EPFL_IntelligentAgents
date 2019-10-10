@@ -22,3 +22,18 @@ using the pair of these three info we can map uniquely all the possible states o
 ## To do
 1. "Cost is computed by multiplying the total distance traveled by a vehicle with the cost per kilometer of the vehicle" ... 
 at the moment when we are finding the most optimal route for a vehicle we are only taking into consideration  the total distance traveled (basically multypling that with a constant will not render a more efficient path; as from what I understoond each agent, itself is designing a plan at the beginning, if smth unexpected happens in the world it will rebuild that plan )
+2. A*
+3. implement planCancelled in BFS
+4. implement planCancelled in A*
+
+planCancelled method info:
+```
+void planCancelled(TaskSet carriedTasks)
+In a multi agent system the plan of an agent might get stuck when the agent
+tries to pick up a task that has already been picked up by another agent. In
+this case this method is called followed by an another plan computation (a
+call to the method above). This time the vehicle might be carrying some tasks
+initially (the carriedTasks argument) and these tasks have to be considered
+when the next plan is computed. You can also use the getCurrentTasks()
+method of the vehicle to obtain the set of tasks that the vehicle is holding
+```
