@@ -166,9 +166,13 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 
 	private Plan bfsPlan(Vehicle vehicle, TaskSet tasks) {
 		// The BFS is going to iterate through all the possible state and return the most rewarding plan
+		HashSet<Task> doingTasks = new HashSet<Task>();
+		vehicle.getCurrentTasks().iterator().forEachRemaining(doingTasks::add);
+		State startingState = new State(vehicle.getCurrentCity(), doingTasks, new HashSet<Task>(), vehicle.capacity());
+
 		Plan bestPlan = doBfs(
 				new HashSet<State>(),
-				new State(vehicle.getCurrentCity(), new HashSet<Task>(), new HashSet<Task>(), vehicle.capacity()),
+				startingState,
 				new Plan(vehicle.getCurrentCity()),
 				tasks
 		);
@@ -271,6 +275,8 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 			// This cannot happen for this simple agent, but typically
 			// you will need to consider the carriedTasks when the next
 			// plan is computed.
+
+			// For BFS there is no need to be done anything, init steps takes cares of it no matter what
 		}
 	}
 }
