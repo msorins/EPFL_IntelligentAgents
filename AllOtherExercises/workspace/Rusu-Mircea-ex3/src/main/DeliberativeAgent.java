@@ -192,13 +192,14 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 		Plan bestPlan = null;
 
 		// Deliver tasks
-		List<Task> toAppend = new ArrayList<Task>();
+		// Cannot modify the getDelivering array while iterating (will return a concurrency error)
+		List<Task> toDeliver = new ArrayList<Task>();
 		state.getDelivering().iterator().forEachRemaining(task -> {
 			if(task.deliveryCity == state.getCurrentCity()) {
-				toAppend.add(task);
+				toDeliver.add(task);
 			}
 		});
-		toAppend.forEach(task -> {
+		toDeliver.forEach(task -> {
 			plan.appendDelivery(task);
 			state.getDelivering().remove(task);
 			state.getDelivered().add(task);
