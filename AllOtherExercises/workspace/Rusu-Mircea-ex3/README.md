@@ -3,21 +3,31 @@ Must design state in a way that we can uniquely identify all the possible scenar
 
 We have a state HashMap so we are not visiting a state the second time as we considered that that path has already been computed.
 
-## State: currentCity
+### State: currentCity
 Making only the currentCity as a state is an invalid approach as in this scenario we cannot visit a city twice (which we may need if for example in a city there are more tasks that weight more than the capacity of the agent)
 
-## State: currentCity, deliveringTask
+##3 State: currentCity, deliveringTask
 deliveringTask = which tasks the agent is delivering at the current time
 
 Again, there are some distinct scenarios that would be mapped to the same state. (an agent after it delivered a task cannot go to a neighbour city that was already visited before the agent got that task)
 
 
-## State: currentCity, deliveringTask, deliveredTask
+### State: currentCity, deliveringTask, deliveredTask
 deliveringTask = which tasks the agent is delivering at the current time
 deliveringTask = which tasks the agent has delivered until the current time
 
 using the pair of these three info we can map uniquely all the possible states of the world.
 
+
+## Info about DFS
+dfs is returning a plan object, optimizing by the totalDistance
+
+always making a deep copy of the parameters (once added an Action in the Plan we cannot remove it, so wee need to deep copy stuff)
+
+Order of the actions:
+1. If there are tasks that can be delivered in the current city, to that first
+2. If there are availabke tasks in the current city, take one by one and start another BFS path (there are cases in which there are more tasks than the agent can take at given time, so which action we choose could influence the results -> another reason for the current state representation)
+3. Move to one of the neighbors of the current city
 
 ## To do
 1. "Cost is computed by multiplying the total distance traveled by a vehicle with the cost per kilometer of the vehicle" ... 
