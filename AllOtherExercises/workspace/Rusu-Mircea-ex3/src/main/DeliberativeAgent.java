@@ -390,6 +390,24 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 		return bestPlan;
 	}
 
+	private double computeHeuristic(State state, TaskSet tasksLeft) {
+		double cost = 0;
+
+		for(Task task: state.getDelivering()) {
+			cost += task.pickupCity.distanceTo( task.deliveryCity );
+		}
+
+		for(Task task: tasksLeft) {
+			cost += task.pickupCity.distanceTo( task.deliveryCity );
+		}
+
+		return cost;
+	}
+
+	private Plan doAStar(State state, TaskSet tasksLeft) {
+		return new Plan(state.getCurrentCity());
+	}
+
 	@Override
 	public void planCancelled(TaskSet carriedTasks) {
 		
