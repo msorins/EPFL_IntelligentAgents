@@ -31,10 +31,13 @@ Order of the actions:
 
 ## To do
 1. "Cost is computed by multiplying the total distance traveled by a vehicle with the cost per kilometer of the vehicle" ... 
-at the moment when we are finding the most optimal route for a vehicle we are only taking into consideration  the total distance traveled (basically multypling that with a constant will not render a more efficient path; as from what I understoond each agent, itself is designing a plan at the beginning, if smth unexpected happens in the world it will rebuild that plan )
-2. A*
-3. implement planCancelled in BFS
-4. implement planCancelled in A*
+at the moment when we are finding the most optimal route for a vehicle we are only taking into consideration  the total distance traveled (basically multypling that with a constant will not render a more efficient path; as from what I understoond each agent, itself is designing a plan at the beginning, if smth unexpected happens in the world it will rebuild that plan ) []
+2. A* []
+3. implement planCancelled in BFS []
+
+I think this is done, we are just taking into consideration the tasks an agent is already doing (in the init step) ~ read below
+
+4. implement planCancelled in A* []
 
 planCancelled method info:
 ```

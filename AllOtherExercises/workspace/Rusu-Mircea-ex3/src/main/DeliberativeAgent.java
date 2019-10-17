@@ -86,6 +86,42 @@ class State {
 	}
 }
 
+class QueueParams {
+	private State state;
+	private Plan plan;
+	private TaskSet tasksLeft;
+
+	public QueueParams(State state, Plan plan, TaskSet tasksLeft) {
+		this.state = state;
+		this.plan = plan;
+		this.tasksLeft = tasksLeft;
+	}
+
+	public State getState() {
+		return state;
+	}
+
+	public void setState(State state) {
+		this.state = state;
+	}
+
+	public Plan getPlan() {
+		return plan;
+	}
+
+	public void setPlan(Plan plan) {
+		this.plan = plan;
+	}
+
+	public TaskSet getTasksLeft() {
+		return tasksLeft;
+	}
+
+	public void setTasksLeft(TaskSet tasksLeft) {
+		this.tasksLeft = tasksLeft;
+	}
+}
+
 public class DeliberativeAgent implements DeliberativeBehavior {
 
 	enum Algorithm { BFS, ASTAR }
@@ -170,7 +206,7 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 		vehicle.getCurrentTasks().iterator().forEachRemaining(doingTasks::add);
 		State startingState = new State(vehicle.getCurrentCity(), doingTasks, new HashSet<Task>(), vehicle.capacity());
 
-		Plan bestPlan = doBfs(
+		Plan bestPlan = doBFS(
 				new HashSet<State>(),
 				startingState,
 				new Plan(vehicle.getCurrentCity()),
@@ -187,7 +223,93 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 		return new Plan(fromCity, actions);
 	}
 
-	private Plan doBfs(HashSet<State> statesMap, State state, Plan plan, TaskSet tasksLeft) {
+	private Plan doBFS(HashSet<State> statesMap, State initialState, Plan initialPlan, TaskSet initialTasksLeft) {
+		Queue<QueueParams> q = new LinkedList<>();
+		q.add(new QueueParams(initialState, initialPlan, initialTasksLeft));
+
+		double bestPlanDistance = Double.MAX_VALUE;
+		Plan bestPlan = new Plan(initialState.getCurrentCity());
+
+		// Do BFS
+		while(!q.isEmpty()) {
+			QueueParams frontQueue = q.element(); q.remove();
+			State state = frontQueue.getState();
+			Plan plan = frontQueue.getPlan();
+			TaskSet tasksLeft = frontQueue.getTasksLeft();
+
+			// 1. Check if we are in a final state (of success)
+			if(tasksLeft.size() == 0 && state.getDelivering().size() == 0) {
+				plan.seal();
+
+				if(plan.totalDistance() < bestPlanDistance) {
+					bestPlanDistance = plan.totalDistance();
+					bestPlan = plan;
+				}
+				continue;
+			}
+
+			// Deliver tasks
+			// Cannot modify the getDelivering array while iterating (will return a concurrency error)
+			List<Task> toDeliver = new ArrayList<Task>();
+			state.getDelivering().iterator().forEachRemaining(task -> {
+				if(task.deliveryCity == state.getCurrentCity()) {
+					toDeliver.add(task);
+				}
+			});
+			toDeliver.forEach(task -> {
+				plan.appendDelivery(task);
+				state.getDelivering().remove(task);
+				state.getDelivered().add(task);
+			});
+
+			// Add the state to the map
+			statesMap.add(state);
+
+			// Pick up tasks
+			for(Task task: tasksLeft) {
+				// Check if agent has capacity to pick up
+				if(state.getCurrentAgentCapacity() >= task.weight) {
+					// Deep copy params for new recursion (so that we avoid java.util.ConcurrentModificationException)
+					State newState = state.clone();
+					newState.getDelivering().add(task);
+
+					Plan newPlan = copyPlan(state.getCurrentCity(), plan);
+					newPlan.appendPickup(task);
+
+					TaskSet newTasksLeft = tasksLeft.clone();
+					newTasksLeft.remove(task);
+
+					// Add new state in queue
+					if(!statesMap.contains(newState)) {
+						statesMap.add(newState);
+						q.add(new QueueParams(newState, newPlan, newTasksLeft));
+					}
+				}
+			}
+
+			// Move to other city
+			for(City toCity: state.getCurrentCity().neighbors()) {
+				// Deep copy params for new recursion (so that we avoid java.util.ConcurrentModificationException)
+				State newState = state.clone();
+				newState.setCurrentCity(toCity);
+
+				Plan newPlan = copyPlan(state.getCurrentCity(), plan);
+				newPlan.appendMove(toCity);
+
+				TaskSet newTasksLeft = tasksLeft.clone();
+
+				// Add new state in queue
+				if(!statesMap.contains(newState)) {
+					statesMap.add(newState);
+					q.add(new QueueParams(newState, newPlan, newTasksLeft));
+				}
+			}
+		}
+
+		return bestPlan;
+	}
+
+	private Plan doDfs(HashSet<State> statesMap, State state, Plan plan, TaskSet tasksLeft) {
 		// Check if we are in a final state (of success)
 		if(tasksLeft.size() == 0 && state.getDelivering().size() == 0) {
 			plan.seal();
@@ -229,7 +351,7 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 				// Go in recursion
 				Plan bfsPlan = null;
 				if(!statesMap.contains(newState)) {
-					bfsPlan = doBfs(statesMap, newState, newPlan, newTasksLeft);
+					bfsPlan = doDfs(statesMap, newState, newPlan, newTasksLeft);
 				}
 
 				// Check if branch returned a better solution
@@ -254,7 +376,7 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 			// Go in recursion
 			Plan bfsPlan = null;
 			if(!statesMap.contains(newState)) {
-				bfsPlan = doBfs(statesMap, newState, newPlan, newTasksLeft);
+				bfsPlan = doDfs(statesMap, newState, newPlan, newTasksLeft);
 			}
 
 			// Check if branch returned a better solution
