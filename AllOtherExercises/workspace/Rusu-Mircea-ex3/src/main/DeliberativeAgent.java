@@ -210,7 +210,7 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 				new Plan(vehicle.getCurrentCity()),
 				tasks
 		);
-		System.out.println("Best plan has been computed( " + bestPlan.totalDistance() + " ): " + bestPlan.toString());
+		System.out.println("Best plan has been computed( " + bestPlan.totalDistanceUnits() + " ): " + bestPlan.toString());
 		return bestPlan;
 	}
 
@@ -223,7 +223,7 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 				startingState,
 				tasks
 		);
-		System.out.println("Best plan has been computed( " + bestPlan.totalDistance() + " ): " + bestPlan.toString());
+		System.out.println("Best plan has been computed( " + bestPlan.totalDistanceUnits() + " ): " + bestPlan.toString());
 		return bestPlan;
 	}
 
@@ -239,7 +239,7 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 		Queue<QueueParams> q = new LinkedList<>();
 		q.add(new QueueParams(initialState, initialPlan, initialTasksLeft));
 
-		double bestPlanDistance = Double.MAX_VALUE;
+		Long bestPlanDistance = Long.MAX_VALUE;
 		Plan bestPlan = new Plan(initialState.getCurrentCity());
 
 		// Do BFS
@@ -253,8 +253,8 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 			if(tasksLeft.size() == 0 && state.getDelivering().size() == 0) {
 				plan.seal();
 
-				if(plan.totalDistance() < bestPlanDistance) {
-					bestPlanDistance = plan.totalDistance();
+				if(plan.totalDistanceUnits() < bestPlanDistance) {
+					bestPlanDistance = plan.totalDistanceUnits();
 					bestPlan = plan;
 				}
 				continue;
