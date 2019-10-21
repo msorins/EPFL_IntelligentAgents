@@ -62,31 +62,37 @@ class State {
 		return agentLeftCapacity;
 	}
 
+//	@Override
+//	public boolean equals(Object o) {
+//		if (this == o) return true;
+//		State other = (State) o;
+//
+//		if(!currentCity.toString().equals(other.currentCity.toString())) {
+//			return false;
+//		}
+//
+//		if(!delivering.toString().equals(other.delivering.toString())) {
+//			return false;
+//		}
+//
+//		if(!delivered.toString().equals(other.delivered.toString())) {
+//			return false;
+//		}
+//
+//		/*
+//		return true;
+//	}
+
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
-		State other = (State) o;
-
-		if(!currentCity.toString().equals(other.currentCity.toString())) {
-			return false;
-		}
-
-		if(!delivering.toString().equals(other.delivering.toString())) {
-			return false;
-		}
-
-		if(!delivered.toString().equals(other.delivered.toString())) {
-			return false;
-		}
-
-		/*
-		[(Task 3, 3 kg, 59223 CHF, Basel -> St-Gallen), (Task 2, 3 kg, 59223 CHF, Sion -> Genève), (Task 4, 3 kg, 18448 CHF, Lausanne -> St-Gallen)]
-		 */
-
-		/*
-
-		 */
-		return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		State state = (State) o;
+		return Objects.equals(currentCity, state.currentCity) &&
+				Objects.equals(delivering, state.delivering) &&
+				Objects.equals(delivered, state.delivered) &&
+				Objects.equals(totalAgentCapacity, state.totalAgentCapacity);
 	}
 
 	@Override
