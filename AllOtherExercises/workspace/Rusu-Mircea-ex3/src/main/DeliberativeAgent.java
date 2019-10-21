@@ -207,7 +207,6 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 		State startingState = new State(vehicle.getCurrentCity(), doingTasks, new HashSet<Task>(), vehicle.capacity());
 
 		Plan bestPlan = doBFS(
-				new HashSet<State>(),
 				startingState,
 				new Plan(vehicle.getCurrentCity()),
 				tasks
@@ -223,7 +222,8 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 		return new Plan(fromCity, actions);
 	}
 
-	private Plan doBFS(HashSet<State> statesMap, State initialState, Plan initialPlan, TaskSet initialTasksLeft) {
+	private Plan doBFS(State initialState, Plan initialPlan, TaskSet initialTasksLeft) {
+		HashSet<State> statesMap = new HashSet<>();
 		Queue<QueueParams> q = new LinkedList<>();
 		q.add(new QueueParams(initialState, initialPlan, initialTasksLeft));
 
@@ -306,87 +306,6 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 			}
 		}
 
-		return bestPlan;
-	}
-
-	private Plan doDfs(HashSet<State> statesMap, State state, Plan plan, TaskSet tasksLeft) {
-		// Check if we are in a final state (of success)
-		if(tasksLeft.size() == 0 && state.getDelivering().size() == 0) {
-			plan.seal();
-			return plan;
-		}
-		Plan bestPlan = null;
-
-		// Deliver tasks
-		// Cannot modify the getDelivering array while iterating (will return a concurrency error)
-		List<Task> toDeliver = new ArrayList<Task>();
-		state.getDelivering().iterator().forEachRemaining(task -> {
-			if(task.deliveryCity == state.getCurrentCity()) {
-				toDeliver.add(task);
-			}
-		});
-		toDeliver.forEach(task -> {
-			plan.appendDelivery(task);
-			state.getDelivering().remove(task);
-			state.getDelivered().add(task);
-		});
-
-		// Add the state to the map
-		statesMap.add(state);
-
-		// Pick up tasks
-		for(Task task: tasksLeft) {
-			// Check if agent has capacity to pick up
-			if(state.getCurrentAgentCapacity() >= task.weight) {
-				// Deep copy params for new recursion (so that we avoid java.util.ConcurrentModificationException)
-				State newState = state.clone();
-				newState.getDelivering().add(task);
-
-				Plan newPlan = copyPlan(state.getCurrentCity(), plan);
-				newPlan.appendPickup(task);
-
-				TaskSet newTasksLeft = tasksLeft.clone();
-				newTasksLeft.remove(task);
-
-				// Go in recursion
-				Plan bfsPlan = null;
-				if(!statesMap.contains(newState)) {
-					bfsPlan = doDfs(statesMap, newState, newPlan, newTasksLeft);
-				}
-
-				// Check if branch returned a better solution
-				// better = distance until all task completed is lower
-				if(bfsPlan != null && (bestPlan == null || bfsPlan.totalDistance() < bestPlan.totalDistance())) {
-					bestPlan = bfsPlan;
-				}
-			}
-		}
-
-		// Move to other city
-		for(City toCity: state.getCurrentCity().neighbors()) {
-			// Deep copy params for new recursion (so that we avoid java.util.ConcurrentModificationException)
-			State newState = state.clone();
-			newState.setCurrentCity(toCity);
-
-			Plan newPlan = copyPlan(state.getCurrentCity(), plan);
-			newPlan.appendMove(toCity);
-
-			TaskSet newTasksLeft = tasksLeft.clone();
-
-			// Go in recursion
-			Plan bfsPlan = null;
-			if(!statesMap.contains(newState)) {
-				bfsPlan = doDfs(statesMap, newState, newPlan, newTasksLeft);
-			}
-
-			// Check if branch returned a better solution
-			// better = distance until all task completed is lower
-			if(bfsPlan != null && (bestPlan == null || bfsPlan.totalDistance() < bestPlan.totalDistance())) {
-				bestPlan = bfsPlan;
-			}
-		}
-
-		// Return the most optim plan
 		return bestPlan;
 	}
 
