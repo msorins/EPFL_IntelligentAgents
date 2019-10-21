@@ -158,12 +158,11 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 		// Compute the plan with the selected algorithm.
 		switch (algorithm) {
 		case ASTAR:
-			// ...
-			plan = naivePlan(vehicle, tasks);
+			plan = aStarPlan(vehicle, tasks);
 			break;
 		case BFS:
-			// ...
-			plan = bfsPlan(vehicle, tasks);
+//			plan = bfsPlan(vehicle, tasks);
+			plan = aStarPlan(vehicle, tasks);
 			break;
 		default:
 			throw new AssertionError("Should not happen.");
@@ -202,13 +201,26 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 
 	private Plan bfsPlan(Vehicle vehicle, TaskSet tasks) {
 		// The BFS is going to iterate through all the possible state and return the most rewarding plan
-		HashSet<Task> doingTasks = new HashSet<Task>();
+		HashSet<Task> doingTasks = new HashSet<>();
 		vehicle.getCurrentTasks().iterator().forEachRemaining(doingTasks::add);
 		State startingState = new State(vehicle.getCurrentCity(), doingTasks, new HashSet<Task>(), vehicle.capacity());
 
 		Plan bestPlan = doBFS(
 				startingState,
 				new Plan(vehicle.getCurrentCity()),
+				tasks
+		);
+		System.out.println("Best plan has been computed( " + bestPlan.totalDistance() + " ): " + bestPlan.toString());
+		return bestPlan;
+	}
+
+	private Plan aStarPlan(Vehicle vehicle, TaskSet tasks) {
+		HashSet<Task> doingTasks = new HashSet<>();
+		vehicle.getCurrentTasks().iterator().forEachRemaining(doingTasks::add);
+		State startingState = new State(vehicle.getCurrentCity(), doingTasks, new HashSet<Task>(), vehicle.capacity());
+
+		Plan bestPlan = doAStar(
+				startingState,
 				tasks
 		);
 		System.out.println("Best plan has been computed( " + bestPlan.totalDistance() + " ): " + bestPlan.toString());
@@ -323,8 +335,99 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 		return cost;
 	}
 
-	private Plan doAStar(State state, TaskSet tasksLeft) {
-		return new Plan(state.getCurrentCity());
+	private Plan doAStar(State initialState, TaskSet initialTasksLeft) {
+		HashMap<State, Double> statesMap = new HashMap<>();
+		statesMap.put(initialState, computeHeuristic(initialState, initialTasksLeft));
+
+		Comparator<QueueParams> qpComparator = (p1, p2) -> (int) (
+				(p1.getPlan().totalDistance() + computeHeuristic(p1.getState(), p1.getTasksLeft())) -
+				(p2.getPlan().totalDistance() + computeHeuristic(p2.getState(), p2.getTasksLeft()))
+		);
+
+		PriorityQueue<QueueParams> pq = new PriorityQueue<>(qpComparator);
+		Plan initialPlan = new Plan(initialState.getCurrentCity());
+		pq.add(new QueueParams(initialState, initialPlan, initialTasksLeft));
+
+		while(!pq.isEmpty()) {
+			QueueParams topQueue = pq.remove();
+			State state = topQueue.getState();
+			Plan plan = topQueue.getPlan();
+			TaskSet tasksLeft = topQueue.getTasksLeft();
+
+			// Check if cost hasn't changed
+			if(statesMap.get(state) != (plan.totalDistance() + computeHeuristic(state, tasksLeft)) ) {
+				continue;
+			}
+
+			// 1. Check if we are in a final state (of success)
+			if(tasksLeft.size() == 0 && state.getDelivering().size() == 0) {
+				plan.seal();
+				return plan;
+			}
+
+			// Deliver tasks
+			// Cannot modify the getDelivering array while iterating (will return a concurrency error)
+			List<Task> toDeliver = new ArrayList<Task>();
+			state.getDelivering().iterator().forEachRemaining(task -> {
+				if(task.deliveryCity == state.getCurrentCity()) {
+					toDeliver.add(task);
+				}
+			});
+			toDeliver.forEach(task -> {
+				plan.appendDelivery(task);
+				state.getDelivering().remove(task);
+				state.getDelivered().add(task);
+			});
+
+			// Add the state to the map
+			if(!statesMap.containsKey(state)) {
+				statesMap.put(state, plan.totalDistance());
+			}
+
+			// Pick up tasks
+			for(Task task: tasksLeft) {
+				// Check if agent has capacity to pick up
+				if(state.getCurrentAgentCapacity() >= task.weight) {
+					// Deep copy params for new recursion (so that we avoid java.util.ConcurrentModificationException)
+					State newState = state.clone();
+					newState.getDelivering().add(task);
+
+					Plan newPlan = copyPlan(state.getCurrentCity(), plan);
+					newPlan.appendPickup(task);
+
+					TaskSet newTasksLeft = tasksLeft.clone();
+					newTasksLeft.remove(task);
+
+					// Add new state in queue
+					double tentativeScore = newPlan.totalDistance() + computeHeuristic(newState, newTasksLeft);
+					if(!statesMap.containsKey(newState) || statesMap.get(newState) < tentativeScore) {
+						statesMap.put(newState, tentativeScore);
+						pq.add(new QueueParams(newState, newPlan, newTasksLeft));
+					}
+				}
+			}
+
+			// Move to other city
+			for(City toCity: state.getCurrentCity().neighbors()) {
+				// Deep copy params for new recursion (so that we avoid java.util.ConcurrentModificationException)
+				State newState = state.clone();
+				newState.setCurrentCity(toCity);
+
+				Plan newPlan = copyPlan(state.getCurrentCity(), plan);
+				newPlan.appendMove(toCity);
+
+				TaskSet newTasksLeft = tasksLeft.clone();
+
+				// Add new state in queue
+				double tentativeScore = newPlan.totalDistance() + computeHeuristic(newState, newTasksLeft);
+				if(!statesMap.containsKey(newState) || statesMap.get(newState) < tentativeScore) {
+					statesMap.put(newState, tentativeScore);
+					pq.add(new QueueParams(newState, newPlan, newTasksLeft));
+				}
+			}
+		}
+
+		return null;
 	}
 
 	@Override
