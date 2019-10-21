@@ -161,8 +161,8 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 			plan = aStarPlan(vehicle, tasks);
 			break;
 		case BFS:
-			plan = bfsPlan(vehicle, tasks);
-//			plan = aStarPlan(vehicle, tasks);
+//			plan = bfsPlan(vehicle, tasks);
+			plan = aStarPlan(vehicle, tasks);
 			break;
 		default:
 			throw new AssertionError("Should not happen.");
@@ -316,11 +316,17 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 		long cost = 0;
 
 		for(Task task: state.getDelivering()) {
-			cost += task.pickupCity.distanceUnitsTo( task.deliveryCity );
+			cost += state.getCurrentCity().distanceTo(task.deliveryCity)
+				   + task.deliveryCity.distanceTo(state.getCurrentCity()) + 1000;
+			;
 		}
 
 		for(Task task: tasksLeft) {
-			cost += task.pickupCity.distanceUnitsTo( task.deliveryCity );
+//			cost += task.pickupCity.distanceUnitsTo( task.deliveryCity );
+			cost += state.getCurrentCity().distanceTo(task.pickupCity)
+					+ task.pickupCity.distanceUnitsTo( task.deliveryCity )
+					+ task.deliveryCity.distanceTo(state.getCurrentCity());
+			;
 		}
 
 		return cost;
@@ -344,11 +350,6 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 			State state = topQueue.getState();
 			Plan plan = topQueue.getPlan();
 			TaskSet tasksLeft = topQueue.getTasksLeft();
-
-			// Check if cost hasn't changed
-			if(statesMap.get(state) != (plan.totalDistanceUnits() + computeHeuristic(state, tasksLeft)) ) {
-				continue;
-			}
 
 			// 1. Check if we are in a final state (of success)
 			if(tasksLeft.size() == 0 && state.getDelivering().size() == 0) {
