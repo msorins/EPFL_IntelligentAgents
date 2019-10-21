@@ -161,8 +161,8 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 			plan = aStarPlan(vehicle, tasks);
 			break;
 		case BFS:
-//			plan = bfsPlan(vehicle, tasks);
-			plan = aStarPlan(vehicle, tasks);
+			plan = bfsPlan(vehicle, tasks);
+//			plan = aStarPlan(vehicle, tasks);
 			break;
 		default:
 			throw new AssertionError("Should not happen.");
@@ -235,7 +235,7 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 	}
 
 	private Plan doBFS(State initialState, Plan initialPlan, TaskSet initialTasksLeft) {
-		HashSet<State> statesMap = new HashSet<>();
+		HashMap<State, Double> statesMap = new HashMap<>();
 		Queue<QueueParams> q = new LinkedList<>();
 		q.add(new QueueParams(initialState, initialPlan, initialTasksLeft));
 
@@ -275,7 +275,9 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 			});
 
 			// Add the state to the map
-			statesMap.add(state);
+			if(!statesMap.containsKey(state) || plan.totalDistance() < statesMap.get(state)) {
+				statesMap.put(state, plan.totalDistance());
+			}
 
 			// Pick up tasks
 			for(Task task: tasksLeft) {
@@ -292,8 +294,8 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 					newTasksLeft.remove(task);
 
 					// Add new state in queue
-					if(!statesMap.contains(newState)) {
-						statesMap.add(newState);
+					if(!statesMap.containsKey(newState) || newPlan.totalDistance() < statesMap.get(newState)) {
+						statesMap.put(newState, newPlan.totalDistance());
 						q.add(new QueueParams(newState, newPlan, newTasksLeft));
 					}
 				}
@@ -311,8 +313,8 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 				TaskSet newTasksLeft = tasksLeft.clone();
 
 				// Add new state in queue
-				if(!statesMap.contains(newState)) {
-					statesMap.add(newState);
+				if(!statesMap.containsKey(newState) || newPlan.totalDistance() < statesMap.get(newState)) {
+					statesMap.put(newState, newPlan.totalDistance());
 					q.add(new QueueParams(newState, newPlan, newTasksLeft));
 				}
 			}
