@@ -161,8 +161,8 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 			plan = aStarPlan(vehicle, tasks);
 			break;
 		case BFS:
-//			plan = bfsPlan(vehicle, tasks);
-			plan = aStarPlan(vehicle, tasks);
+			plan = bfsPlan(vehicle, tasks);
+//			plan = aStarPlan(vehicle, tasks);
 			break;
 		default:
 			throw new AssertionError("Should not happen.");
@@ -210,7 +210,7 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 				new Plan(vehicle.getCurrentCity()),
 				tasks
 		);
-		System.out.println("Best plan has been computed( " + bestPlan.totalDistance() + " ): " + bestPlan.toString());
+		System.out.println("Best plan has been computed( " + bestPlan.totalDistanceUnits() + " ): " + bestPlan.toString());
 		return bestPlan;
 	}
 
@@ -223,7 +223,7 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 				startingState,
 				tasks
 		);
-		System.out.println("Best plan has been computed( " + bestPlan.totalDistance() + " ): " + bestPlan.toString());
+		System.out.println("Best plan has been computed( " + bestPlan.totalDistanceUnits() + " ): " + bestPlan.toString());
 		return bestPlan;
 	}
 
@@ -239,9 +239,6 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 		Queue<QueueParams> q = new LinkedList<>();
 		q.add(new QueueParams(initialState, initialPlan, initialTasksLeft));
 
-		double bestPlanDistance = Double.MAX_VALUE;
-		Plan bestPlan = new Plan(initialState.getCurrentCity());
-
 		// Do BFS
 		while(!q.isEmpty()) {
 			QueueParams frontQueue = q.element(); q.remove();
@@ -252,17 +249,12 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 			// 1. Check if we are in a final state (of success)
 			if(tasksLeft.size() == 0 && state.getDelivering().size() == 0) {
 				plan.seal();
-
-				if(plan.totalDistance() < bestPlanDistance) {
-					bestPlanDistance = plan.totalDistance();
-					bestPlan = plan;
-				}
-				continue;
+				return plan;
 			}
 
 			// Deliver tasks
 			// Cannot modify the getDelivering array while iterating (will return a concurrency error)
-			List<Task> toDeliver = new ArrayList<Task>();
+			List<Task> toDeliver = new ArrayList<>();
 			state.getDelivering().iterator().forEachRemaining(task -> {
 				if(task.deliveryCity == state.getCurrentCity()) {
 					toDeliver.add(task);
@@ -317,31 +309,30 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 				}
 			}
 		}
-
-		return bestPlan;
+		return null;
 	}
 
-	private double computeHeuristic(State state, TaskSet tasksLeft) {
-		double cost = 0;
+	private Long computeHeuristic(State state, TaskSet tasksLeft) {
+		long cost = 0;
 
 		for(Task task: state.getDelivering()) {
-			cost += task.pickupCity.distanceTo( task.deliveryCity );
+			cost += task.pickupCity.distanceUnitsTo( task.deliveryCity );
 		}
 
 		for(Task task: tasksLeft) {
-			cost += task.pickupCity.distanceTo( task.deliveryCity );
+			cost += task.pickupCity.distanceUnitsTo( task.deliveryCity );
 		}
 
 		return cost;
 	}
 
 	private Plan doAStar(State initialState, TaskSet initialTasksLeft) {
-		HashMap<State, Double> statesMap = new HashMap<>();
+		HashMap<State, Long> statesMap = new HashMap<>();
 		statesMap.put(initialState, computeHeuristic(initialState, initialTasksLeft));
 
 		Comparator<QueueParams> qpComparator = (p1, p2) -> (int) (
-				(p1.getPlan().totalDistance() + computeHeuristic(p1.getState(), p1.getTasksLeft())) -
-				(p2.getPlan().totalDistance() + computeHeuristic(p2.getState(), p2.getTasksLeft()))
+				(p1.getPlan().totalDistanceUnits() + computeHeuristic(p1.getState(), p1.getTasksLeft())) -
+				(p2.getPlan().totalDistanceUnits() + computeHeuristic(p2.getState(), p2.getTasksLeft()))
 		);
 
 		PriorityQueue<QueueParams> pq = new PriorityQueue<>(qpComparator);
@@ -355,7 +346,7 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 			TaskSet tasksLeft = topQueue.getTasksLeft();
 
 			// Check if cost hasn't changed
-			if(statesMap.get(state) != (plan.totalDistance() + computeHeuristic(state, tasksLeft)) ) {
+			if(statesMap.get(state) != (plan.totalDistanceUnits() + computeHeuristic(state, tasksLeft)) ) {
 				continue;
 			}
 
@@ -381,7 +372,7 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 
 			// Add the state to the map
 			if(!statesMap.containsKey(state)) {
-				statesMap.put(state, plan.totalDistance());
+				statesMap.put(state,  plan.totalDistanceUnits());
 			}
 
 			// Pick up tasks
@@ -399,7 +390,7 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 					newTasksLeft.remove(task);
 
 					// Add new state in queue
-					double tentativeScore = newPlan.totalDistance() + computeHeuristic(newState, newTasksLeft);
+					Long tentativeScore = newPlan.totalDistanceUnits() + computeHeuristic(newState, newTasksLeft);
 					if(!statesMap.containsKey(newState) || statesMap.get(newState) < tentativeScore) {
 						statesMap.put(newState, tentativeScore);
 						pq.add(new QueueParams(newState, newPlan, newTasksLeft));
@@ -419,7 +410,7 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 				TaskSet newTasksLeft = tasksLeft.clone();
 
 				// Add new state in queue
-				double tentativeScore = newPlan.totalDistance() + computeHeuristic(newState, newTasksLeft);
+				Long tentativeScore = newPlan.totalDistanceUnits() + computeHeuristic(newState, newTasksLeft);
 				if(!statesMap.containsKey(newState) || statesMap.get(newState) < tentativeScore) {
 					statesMap.put(newState, tentativeScore);
 					pq.add(new QueueParams(newState, newPlan, newTasksLeft));
