@@ -24,12 +24,14 @@ class State {
 	private City currentCity;
 	private HashSet<Task> delivering;
 	private HashSet<Task> delivered;
+	private HashSet<Task> toDeliver;
 	private Integer totalAgentCapacity;
 
-	public State(City currentCity, HashSet<Task> delivering, HashSet<Task> delivered, Integer totalAgentCapacity) {
+	public State(City currentCity, HashSet<Task> delivering, HashSet<Task> delivered, HashSet<Task> toDeliver, Integer totalAgentCapacity) {
 		this.currentCity = currentCity;
 		this.delivering = delivering;
 		this.delivered = delivered;
+		this.toDeliver = toDeliver;
 		this.totalAgentCapacity = totalAgentCapacity;
 	}
 
@@ -62,27 +64,13 @@ class State {
 		return agentLeftCapacity;
 	}
 
-//	@Override
-//	public boolean equals(Object o) {
-//		if (this == o) return true;
-//		State other = (State) o;
-//
-//		if(!currentCity.toString().equals(other.currentCity.toString())) {
-//			return false;
-//		}
-//
-//		if(!delivering.toString().equals(other.delivering.toString())) {
-//			return false;
-//		}
-//
-//		if(!delivered.toString().equals(other.delivered.toString())) {
-//			return false;
-//		}
-//
-//		/*
-//		return true;
-//	}
+	public HashSet<Task> getToDeliver() {
+		return toDeliver;
+	}
 
+	public void setToDeliver(HashSet<Task> toDeliver) {
+		this.toDeliver = toDeliver;
+	}
 
 	@Override
 	public boolean equals(Object o) {
@@ -102,19 +90,17 @@ class State {
 
 	@Override
 	protected State clone() {
-		return new State(this.currentCity, (HashSet<Task>) this.delivering.clone(), (HashSet<Task>) this.delivered.clone(), this.totalAgentCapacity);
+		return new State(this.currentCity, (HashSet<Task>) this.delivering.clone(), (HashSet<Task>) this.delivered.clone(), (HashSet<Task>) this.toDeliver.clone(), this.totalAgentCapacity);
 	}
 }
 
 class QueueParams {
 	private State state;
 	private Plan plan;
-	private TaskSet tasksLeft;
 
-	public QueueParams(State state, Plan plan, TaskSet tasksLeft) {
+	public QueueParams(State state, Plan plan) {
 		this.state = state;
 		this.plan = plan;
-		this.tasksLeft = tasksLeft;
 	}
 
 	public State getState() {
@@ -131,14 +117,6 @@ class QueueParams {
 
 	public void setPlan(Plan plan) {
 		this.plan = plan;
-	}
-
-	public TaskSet getTasksLeft() {
-		return tasksLeft;
-	}
-
-	public void setTasksLeft(TaskSet tasksLeft) {
-		this.tasksLeft = tasksLeft;
 	}
 }
 
@@ -222,12 +200,15 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 		// The BFS is going to iterate through all the possible states and return the most rewarding plan
 		HashSet<Task> doingTasks = new HashSet<>();
 		vehicle.getCurrentTasks().iterator().forEachRemaining(doingTasks::add);
-		State startingState = new State(vehicle.getCurrentCity(), doingTasks, new HashSet<Task>(), vehicle.capacity());
+
+		HashSet<Task> toDeliver = new HashSet<> ();
+		tasks.iterator().forEachRemaining(toDeliver::add);
+
+		State startingState = new State(vehicle.getCurrentCity(), doingTasks, new HashSet<>(), toDeliver, vehicle.capacity());
 
 		Plan bestPlan = doBFS(
 				startingState,
-				vehicle.costPerKm(),
-				tasks
+				vehicle.costPerKm()
 		);
 		System.out.println("Best plan has been computed( " + bestPlan.totalDistanceUnits() + " ): " + bestPlan.toString());
 		return bestPlan;
@@ -236,12 +217,15 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 	private Plan aStarPlan(Vehicle vehicle, TaskSet tasks) {
 		HashSet<Task> doingTasks = new HashSet<>();
 		vehicle.getCurrentTasks().iterator().forEachRemaining(doingTasks::add);
-		State startingState = new State(vehicle.getCurrentCity(), doingTasks, new HashSet<Task>(), vehicle.capacity());
+
+		HashSet<Task> toDeliver = new HashSet<> ();
+		tasks.iterator().forEachRemaining(toDeliver::add);
+
+		State startingState = new State(vehicle.getCurrentCity(), doingTasks, new HashSet<Task>(), toDeliver, vehicle.capacity());
 
 		Plan bestPlan = doAStar(
 				startingState,
-				vehicle.costPerKm(),
-				tasks
+				vehicle.costPerKm()
 		);
 		System.out.println("Best plan has been computed( " + bestPlan.totalDistanceUnits() + " ): " + bestPlan.toString());
 		return bestPlan;
@@ -254,19 +238,19 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 		return new Plan(fromCity, actions);
 	}
 
-	private Plan doBFS(State initialState, Integer costPerKm, TaskSet initialTasksLeft) {
+	private Plan doBFS(State initialState, Integer costPerKm) {
 		HashMap<State, Long> statesMap = new HashMap<>();
 		Queue<QueueParams> q = new LinkedList<>();
 		Plan initialPlan = new Plan(initialState.getCurrentCity());
 		Plan bestPlan = null;
-		q.add(new QueueParams(initialState, initialPlan, initialTasksLeft));
+		q.add(new QueueParams(initialState, initialPlan));
 
 		// Do BFS
 		while(!q.isEmpty()) {
 			QueueParams frontQueue = q.element(); q.remove();
 			State state = frontQueue.getState();
 			Plan plan = frontQueue.getPlan();
-			TaskSet tasksLeft = frontQueue.getTasksLeft();
+			HashSet<Task> tasksLeft = state.getToDeliver();
 
 			// 1. Deliver tasks that can be delivered
 			// Cannot modify the getDelivering array while iterating (will return a concurrency error)
@@ -304,12 +288,10 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 					// Deep copy params for new recursion (so that we avoid java.util.ConcurrentModificationException)
 					State newState = state.clone();
 					newState.getDelivering().add(task);
+					newState.getToDeliver().remove(task);
 
 					Plan newPlan = copyPlan(state.getCurrentCity(), plan);
 					newPlan.appendPickup(task);
-
-					TaskSet newTasksLeft = tasksLeft.clone();
-					newTasksLeft.remove(task);
 
 					// Add new state in queue
 					if(statesMap.containsKey(newState) && !statesMap.containsKey(state)) {
@@ -317,7 +299,7 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 					}
 					if(!statesMap.containsKey(newState) || (newPlan.totalDistanceUnits() * costPerKm < statesMap.get(state))) {
 						statesMap.put(newState, newPlan.totalDistanceUnits() * costPerKm);
-						q.add(new QueueParams(newState, newPlan, newTasksLeft));
+						q.add(new QueueParams(newState, newPlan));
 					}
 				}
 			}
@@ -331,12 +313,10 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 				Plan newPlan = copyPlan(state.getCurrentCity(), plan);
 				newPlan.appendMove(toCity);
 
-				TaskSet newTasksLeft = tasksLeft.clone();
-
 				// Add new state in queue
 				if(!statesMap.containsKey(newState) || (newPlan.totalDistanceUnits() * costPerKm < statesMap.get(state))) {
 					statesMap.put(newState, newPlan.totalDistanceUnits() * costPerKm);
-					q.add(new QueueParams(newState, newPlan, newTasksLeft));
+					q.add(new QueueParams(newState, newPlan));
 				}
 			}
 		}
@@ -344,32 +324,32 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 		return bestPlan;
 	}
 
-	private Long computeHeuristic(State state, TaskSet tasksLeft) {
+	private Long computeHeuristic(State state) {
 		long cost = 0;
 
 		for(Task task: state.getDelivering()) {
 			cost += task.pickupCity.distanceTo(task.deliveryCity);
 		}
 
-		for(Task task: tasksLeft) {
+		for(Task task: state.getDelivered()) {
 			cost += task.pickupCity.distanceTo(task.deliveryCity);
 		}
 
 		return cost;
 	}
 
-	private Plan doAStar(State initialState, Integer costPerKm, TaskSet initialTasksLeft) {
+	private Plan doAStar(State initialState, Integer costPerKm) {
 		HashMap<State, Long> statesMap = new HashMap<>();
-		statesMap.put(initialState, computeHeuristic(initialState, initialTasksLeft) * costPerKm);
+		statesMap.put(initialState, computeHeuristic(initialState) * costPerKm);
 
 		Comparator<QueueParams> qpComparator = (p1, p2) -> (int) (
-				(p1.getPlan().totalDistanceUnits() + computeHeuristic(p1.getState(), p1.getTasksLeft())) * costPerKm -
-				(p2.getPlan().totalDistanceUnits() + computeHeuristic(p2.getState(), p2.getTasksLeft())) * costPerKm
+				(p1.getPlan().totalDistanceUnits() + computeHeuristic(p1.getState())) * costPerKm -
+				(p2.getPlan().totalDistanceUnits() + computeHeuristic(p2.getState())) * costPerKm
 		);
 
 		PriorityQueue<QueueParams> pq = new PriorityQueue<>(qpComparator);
 		Plan initialPlan = new Plan(initialState.getCurrentCity());
-		pq.add(new QueueParams(initialState, initialPlan, initialTasksLeft));
+		pq.add(new QueueParams(initialState, initialPlan));
 
 		Plan bestPlan = null;
 
@@ -377,7 +357,7 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 			QueueParams topQueue = pq.remove();
 			State state = topQueue.getState();
 			Plan plan = topQueue.getPlan();
-			TaskSet tasksLeft = topQueue.getTasksLeft();
+			HashSet<Task> tasksLeft = state.getToDeliver();
 
 			// 1. Deliver tasks that can be delivered
 			// Cannot modify the getDelivering array while iterating (will return a concurrency error)
@@ -394,7 +374,7 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 			});
 
 			// Also add the new state (with available tasks delivered)
-			statesMap.put(state, (plan.totalDistanceUnits() + computeHeuristic(state, tasksLeft) ) * costPerKm);
+			statesMap.put(state, (plan.totalDistanceUnits() + computeHeuristic(state) ) * costPerKm);
 
 			// 2. Check if we are in a final state (of success)
 			if(tasksLeft.size() == 0 && state.getDelivering().size() == 0) {
@@ -414,22 +394,20 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 					// Deep copy params for new recursion (so that we avoid java.util.ConcurrentModificationException)
 					State newState = state.clone();
 					newState.getDelivering().add(task);
+					newState.getToDeliver().remove(task);
 
 					Plan newPlan = copyPlan(state.getCurrentCity(), plan);
 					newPlan.appendPickup(task);
-
-					TaskSet newTasksLeft = tasksLeft.clone();
-					newTasksLeft.remove(task);
 
 					// Add new state in queue
 					if(statesMap.containsKey(newState) && !statesMap.containsKey(state)) {
 						System.out.println(state.toString());
 					}
 
-					Long prospectiveEarn = (newPlan.totalDistanceUnits() + computeHeuristic(newState, newTasksLeft) ) * costPerKm;
+					Long prospectiveEarn = (newPlan.totalDistanceUnits() + computeHeuristic(newState) ) * costPerKm;
 					if(!statesMap.containsKey(newState) || ( prospectiveEarn < statesMap.get(state))) {
 						statesMap.put(newState, newPlan.totalDistanceUnits() * costPerKm);
-						pq.add(new QueueParams(newState, newPlan, newTasksLeft));
+						pq.add(new QueueParams(newState, newPlan));
 					}
 				}
 			}
@@ -443,13 +421,11 @@ public class DeliberativeAgent implements DeliberativeBehavior {
 				Plan newPlan = copyPlan(state.getCurrentCity(), plan);
 				newPlan.appendMove(toCity);
 
-				TaskSet newTasksLeft = tasksLeft.clone();
-
 				// Add new state in queue
-				Long prospectiveEarn = (newPlan.totalDistanceUnits() + computeHeuristic(newState, newTasksLeft) ) * costPerKm;
+				Long prospectiveEarn = (newPlan.totalDistanceUnits() + computeHeuristic(newState) ) * costPerKm;
 				if(!statesMap.containsKey(newState) || ( prospectiveEarn < statesMap.get(state))) {
 					statesMap.put(newState, newPlan.totalDistanceUnits() * costPerKm);
-					pq.add(new QueueParams(newState, newPlan, newTasksLeft));
+					pq.add(new QueueParams(newState, newPlan));
 				}
 			}
 		}
