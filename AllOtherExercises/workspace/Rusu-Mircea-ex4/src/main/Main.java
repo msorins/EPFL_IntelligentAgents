@@ -6,6 +6,6 @@ public class Main {
         String randomAgent[] = {"config/centralized.xml", "centralized-random"};
         String centralizedAgent[] = {"config/centralized.xml", "centralized-main"};
 
-        LogistPlatform.main(randomAgent);
+        LogistPlatform.main(centralizedAgent);
     }
 }

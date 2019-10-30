@@ -7,6 +7,8 @@ import logist.task.TaskSet;
 import logist.topology.Topology;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 public class CSP {
@@ -52,10 +54,92 @@ public class CSP {
 
     boolean isValid() {
         // Return if this.CSP is valid, aka is final state that respects all the constraints
+
+        // Return false if not all tasks are delivered => IF IT IS NOT A FINAL STATE
+        if(tasksDelivered() != this.tasksToDo.size() * 2) {
+            return false;
+        }
+
+        // Return false if agent hasn't got a valid list of tasks
+        if(areInvalidTasksFormations()) {
+            return true;
+        }
+
+        // Return false if there are duplicate tasks in different cars
+        if(areDuplicateTasks()) {
+            return true;
+        }
+
         return true;
     }
 
-    List<CSP> getNeighbours() {
+    int tasksDelivered() {
+        int nr = 0;
+        for(int i = 0; i < tasks.size(); i++) {
+            nr += tasks.get(i).size();
+        }
+
+        return nr;
+    }
+
+    boolean areInvalidTasksFormations() {
+        for(int i = 0; i < tasks.size(); i++) {
+            HashMap<Task, Integer> memo = new HashMap<>();
+            Integer crtCapacity = vehiclesList.get(i).capacity();
+
+            for(int j = 0; j < tasks.get(i).size(); j++) {
+                if(tasks.get(i).get(j).pickUp) {
+                    // If pick up task => just add it to memo
+
+                    // Return true if vehicle has more tasks than its capacity
+                    crtCapacity -= 1;
+                    if(crtCapacity < 0) {
+                        return true;
+                    }
+
+                    // Return true if task was taken twice
+                    if(memo.containsKey(tasks.get(i).get(j).task)) {
+                        return true;
+                    }
+
+                    // Add it to tasks
+                    memo.put(tasks.get(i).get(j).task, j);
+                } else {
+                    crtCapacity += 1;
+
+                    // Return true if task was not picked up
+                    if(!memo.containsKey(tasks.get(i).get(j).task)) {
+                        return true;
+                    }
+
+                    // Return true if task was already delivered
+                    if(memo.get(tasks.get(i).get(j).task) == -1) {
+                        return true;
+                    }
+
+                    memo.put(tasks.get(i).get(j).task, -1);
+                }
+            }
+        }
+
+        return false;
+    }
+
+    boolean areDuplicateTasks() {
+        HashSet<Task> memo = new HashSet<>();
+        for(int i = 0; i < tasks.size(); i++) {
+            for(int j = 0; j < tasks.get(i).size(); j++) {
+                if(tasks.get(i).get(j).pickUp && memo.contains(tasks.get(i).get(j).task)) {
+                    return true;
+                }
+
+                memo.add(tasks.get(i).get(j).task);
+            }
+        }
+        return false;
+    }
+
+    List<CSP> getNeighbours(int nrNeighbours) {
         ArrayList<CSP> csps = new ArrayList<>();
 
         return csps;
