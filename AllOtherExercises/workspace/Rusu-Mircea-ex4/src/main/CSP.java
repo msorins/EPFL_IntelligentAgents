@@ -59,12 +59,12 @@ public class CSP {
 
         // Return false if agent hasn't got a valid list of tasks
         if(areInvalidTasksFormations()) {
-            return true;
+            return false;
         }
 
         // Return false if there are duplicate tasks in different cars
         if(areDuplicateTasks()) {
-            return true;
+            return false;
         }
 
         return true;

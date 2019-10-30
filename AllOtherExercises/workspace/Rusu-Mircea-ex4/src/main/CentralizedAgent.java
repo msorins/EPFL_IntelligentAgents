@@ -17,6 +17,7 @@ import logist.topology.Topology.City;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * A very simple auction agent that assigns all tasks to its first vehicle and
@@ -59,19 +60,25 @@ public class CentralizedAgent implements CentralizedBehavior {
     public List<Plan> plan(List<Vehicle> vehicles, TaskSet tasks) {
         long time_start = System.currentTimeMillis();
         CSP csp = CSP.generate(vehicles, tasks);
-        ArrayList<Plan> plans = csp.toPlans();
-        System.out.println("Computed plans with cost: " + CSP.plansCost(plans, vehicles));
-        System.out.println("Is plan valid? " + csp.isValid());
 
+        // To do: make these values parameters
+        Double p = 0.3;
+        Integer nrNeighboursGenerated = 100;
+
+        Random rand;
+        int i = 0;
+        while(i < 1000) {
+            CSP newCSP = csp.chooseBestNeighbour(nrNeighboursGenerated);
+            csp = newCSP;
+
+            System.out.println("New plan cost is: " + csp.cost());
+            i += 1;
+        }
         long time_end = System.currentTimeMillis();
         long duration = time_end - time_start;
         System.out.println("The plan was generated in " + duration + " milliseconds.");
 
-        List<CSP> neigh = csp.getNeighbours(100);
-        for(CSP scsp: neigh) {
-            System.out.println(scsp.cost());
-        }
-        return plans;
+        return csp.toPlans();
 
 //		System.out.println("Agent " + agent.id() + " has tasks " + tasks);
 //        Plan planVehicle1 = centralizedPlan(vehicles.get(0), tasks);
