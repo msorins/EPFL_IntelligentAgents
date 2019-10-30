@@ -60,7 +60,7 @@ public class CentralizedAgent implements CentralizedBehavior {
         long time_start = System.currentTimeMillis();
         
 //		System.out.println("Agent " + agent.id() + " has tasks " + tasks);
-        Plan planVehicle1 = naivePlan(vehicles.get(0), tasks);
+        Plan planVehicle1 = centralizedPlan(vehicles.get(0), tasks);
 
         List<Plan> plans = new ArrayList<Plan>();
         plans.add(planVehicle1);
@@ -75,7 +75,7 @@ public class CentralizedAgent implements CentralizedBehavior {
         return plans;
     }
 
-    private Plan naivePlan(Vehicle vehicle, TaskSet tasks) {
+    private Plan centralizedPlan(Vehicle vehicle, TaskSet tasks) {
         City current = vehicle.getCurrentCity();
         Plan plan = new Plan(current);
 
@@ -99,4 +99,6 @@ public class CentralizedAgent implements CentralizedBehavior {
         }
         return plan;
     }
+
+
 }
