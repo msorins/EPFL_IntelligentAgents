@@ -61,35 +61,30 @@ public class CentralizedAgent implements CentralizedBehavior {
         long time_start = System.currentTimeMillis();
         CSP csp = CSP.generate(vehicles, tasks);
 
-        // To do: make these values parameters
-        Double p = 0.3;
+        // PARAMETERS !!
+        Integer p = 60;
         Integer nrNeighboursGenerated = 100;
+        // END OF PARAMETERS
 
-        Random rand;
-        int i = 0;
-        while(i < 1000) {
+        Random rand = new Random();
+        while(true) {
             CSP newCSP = csp.chooseBestNeighbour(nrNeighboursGenerated);
-            csp = newCSP;
+            if(rand.nextInt(100) <= p) {
+                csp = newCSP;
+            }
 
-            System.out.println("New plan cost is: " + csp.cost());
-            i += 1;
+            long time_end = System.currentTimeMillis();
+            long duration = time_end - time_start;
+            if(duration> timeout_plan - 200) {
+                break;
+            }
+            System.out.println("Duration: " + duration + "; Current cost: " + csp.cost());
         }
         long time_end = System.currentTimeMillis();
         long duration = time_end - time_start;
+        System.out.println("Best plan has cost of: " + csp.cost());
         System.out.println("The plan was generated in " + duration + " milliseconds.");
-
         return csp.toPlans();
-
-//		System.out.println("Agent " + agent.id() + " has tasks " + tasks);
-//        Plan planVehicle1 = centralizedPlan(vehicles.get(0), tasks);
-//
-//        List<Plan> plans = new ArrayList<Plan>();
-//        plans.add(planVehicle1);
-//        while (plans.size() < vehicles.size()) {
-//            plans.add(Plan.EMPTY);
-//        }
-//
-//        return plans;
     }
 
     private Plan centralizedPlan(Vehicle vehicle, TaskSet tasks) {

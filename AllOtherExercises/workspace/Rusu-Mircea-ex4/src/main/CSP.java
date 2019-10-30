@@ -37,6 +37,7 @@ public class CSP {
         }
 
         int crtVehicleIndex = 0;
+        // Loop through tasks and assign each one to a vehicle (in order)
         for(Task task: tasks) {
             // Attribute to "crtVehicleIndex" the current task
             csp.getTasks().get(crtVehicleIndex).add( new TaskEncap(task, true) );
