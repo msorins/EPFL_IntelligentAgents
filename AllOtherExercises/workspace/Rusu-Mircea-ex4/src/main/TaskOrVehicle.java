@@ -4,17 +4,17 @@ import logist.simulation.Vehicle;
 import logist.task.Task;
 
 public class TaskOrVehicle {
-    private Task task;
+    private TaskEncap task;
     private Vehicle vehicle ;
     boolean isTask;
 
-    public TaskOrVehicle(Task task, Vehicle vehicle, boolean isTask) {
+    public TaskOrVehicle(TaskEncap task, Vehicle vehicle, boolean isTask) {
         this.task = task;
         this.vehicle = vehicle;
         this.isTask = isTask;
     }
 
-    public TaskOrVehicle(Task task) {
+    public TaskOrVehicle(TaskEncap task) {
         this.task = task;
         isTask = true;
     }

@@ -19,6 +19,7 @@ import logist.task.TaskDistribution;
 import logist.task.TaskSet;
 import logist.topology.Topology;
 import logist.topology.Topology.City;
+import main.CSP;
 
 /**
  * A very simple auction agent that assigns all tasks to its first vehicle and
@@ -57,6 +58,16 @@ public class CentralizedTemplate implements CentralizedBehavior {
         this.agent = agent;
     }
 
+    Long plansCost(List<Plan> plans, List<Vehicle> vehiclesList) {
+        long cost = 0;
+
+        for(int i = 0; i < plans.size(); i++) {
+            cost += plans.get(i).totalDistance() * vehiclesList.get(i).costPerKm();
+        }
+
+        return cost;
+    }
+
     @Override
     public List<Plan> plan(List<Vehicle> vehicles, TaskSet tasks) {
         long time_start = System.currentTimeMillis();
@@ -73,7 +84,8 @@ public class CentralizedTemplate implements CentralizedBehavior {
         long time_end = System.currentTimeMillis();
         long duration = time_end - time_start;
         System.out.println("The plan was generated in " + duration + " milliseconds.");
-        
+
+        System.out.println("Computed plans with cost: " + plansCost(plans, vehicles));
         return plans;
     }
 

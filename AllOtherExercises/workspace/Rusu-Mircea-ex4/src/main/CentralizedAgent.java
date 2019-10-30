@@ -58,21 +58,25 @@ public class CentralizedAgent implements CentralizedBehavior {
     @Override
     public List<Plan> plan(List<Vehicle> vehicles, TaskSet tasks) {
         long time_start = System.currentTimeMillis();
-        
-//		System.out.println("Agent " + agent.id() + " has tasks " + tasks);
-        Plan planVehicle1 = centralizedPlan(vehicles.get(0), tasks);
+        ArrayList<Plan> plans = CSP.generate(vehicles, tasks).toPlans();
+        System.out.println("Computed plans with cost: " + CSP.plansCost(plans, vehicles));
 
-        List<Plan> plans = new ArrayList<Plan>();
-        plans.add(planVehicle1);
-        while (plans.size() < vehicles.size()) {
-            plans.add(Plan.EMPTY);
-        }
-        
-        long time_end = System.currentTimeMillis();
-        long duration = time_end - time_start;
-        System.out.println("The plan was generated in " + duration + " milliseconds.");
-        
         return plans;
+
+//		System.out.println("Agent " + agent.id() + " has tasks " + tasks);
+//        Plan planVehicle1 = centralizedPlan(vehicles.get(0), tasks);
+//
+//        List<Plan> plans = new ArrayList<Plan>();
+//        plans.add(planVehicle1);
+//        while (plans.size() < vehicles.size()) {
+//            plans.add(Plan.EMPTY);
+//        }
+//
+//        long time_end = System.currentTimeMillis();
+//        long duration = time_end - time_start;
+//        System.out.println("The plan was generated in " + duration + " milliseconds.");
+//
+//        return plans;
     }
 
     private Plan centralizedPlan(Vehicle vehicle, TaskSet tasks) {
