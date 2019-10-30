@@ -6,10 +6,7 @@ import logist.task.Task;
 import logist.task.TaskSet;
 import logist.topology.Topology;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 public class CSP {
     // These two do not change
@@ -141,14 +138,78 @@ public class CSP {
 
     List<CSP> getNeighbours(int nrNeighbours) {
         ArrayList<CSP> csps = new ArrayList<>();
+        Random ran = new Random();
+
+        while(csps.size() < nrNeighbours) {
+            if(ran.nextBoolean()) {
+                // Swap two tasks from a vehicle
+                CSP newCsp = (CSP) this.clone();
+                int vehicleIndex = ran.nextInt(newCsp.getVehiclesList().size());
+                int indexA = -1, indexB = -1;
+                while(indexA == indexB) {
+                    indexA = ran.nextInt(newCsp.getTasks().get(vehicleIndex).size());
+                    indexB = ran.nextInt(newCsp.getTasks().get(vehicleIndex).size());
+                }
+                Collections.swap( newCsp.getTasks().get(vehicleIndex), indexA, indexB);
+
+                if(newCsp.isValid()) {
+                    csps.add(newCsp);
+                }
+            } else {
+                // Swap pair of tasks between two vehicles
+                CSP newCsp = (CSP) this.clone();
+
+                // Indexes of targeted vehicles
+                int vehicleIndexA = -1, vehicleIndexB = -1;
+                while(vehicleIndexA == vehicleIndexB) {
+                    vehicleIndexA = ran.nextInt(newCsp.getVehiclesList().size());
+                    vehicleIndexB = ran.nextInt(newCsp.getVehiclesList().size());
+                }
+
+                // For each vehicle, target a specific task
+                int posA = ran.nextInt(newCsp.tasks.get(vehicleIndexA).size());
+                Task taskA = newCsp.tasks.get(vehicleIndexA).get(posA).task;
+
+                int posB = ran.nextInt(newCsp.tasks.get(vehicleIndexB).size());
+                Task taskB = newCsp.tasks.get(vehicleIndexB).get(posB).task;
+
+                // Delete those tasks
+                newCsp.tasks.get(vehicleIndexA).remove(new TaskEncap(taskA, true));
+                newCsp.tasks.get(vehicleIndexA).remove(new TaskEncap(taskA, false));
+
+                newCsp.tasks.get(vehicleIndexB).remove(new TaskEncap(taskB, true));
+                newCsp.tasks.get(vehicleIndexB).remove(new TaskEncap(taskB, false));
+
+                // Add new tasks
+                newCsp.tasks.get(vehicleIndexA).add(new TaskEncap(taskB, true));
+                newCsp.tasks.get(vehicleIndexA).add(new TaskEncap(taskB, false));
+
+                newCsp.tasks.get(vehicleIndexB).add(new TaskEncap(taskA, true));
+                newCsp.tasks.get(vehicleIndexB).add(new TaskEncap(taskA, false));
+
+                if(newCsp.isValid()) {
+                    csps.add(newCsp);
+                } else {
+                    System.out.println("Possibly a problem, this should always be valid");
+                }
+            }
+        }
 
         return csps;
     }
 
-    CSP chooseBestNeighbour() {
+    CSP chooseBestNeighbour(int nrNeighbours) {
         // Will call getNeighbours and return the best neighbour
-        CSP csp = new CSP();
-        return csp;
+        List<CSP> csps = getNeighbours(nrNeighbours);
+        CSP bestCSP = csps.get(0);
+
+        for(int i = 1; i < csps.size(); i++) {
+            if(csps.get(i).cost() < bestCSP.cost()) {
+                bestCSP = csps.get(i);
+            }
+        }
+
+        return bestCSP;
     }
 
     ArrayList<Plan> toPlans() {
@@ -201,11 +262,16 @@ public class CSP {
 
 
     @Override
-    protected Object clone() throws CloneNotSupportedException {
+    protected Object clone() {
+        ArrayList<ArrayList<TaskEncap>> newTasks = new ArrayList<>();
+        for(ArrayList<TaskEncap> tasksForVeh: this.tasks) {
+            newTasks.add( (ArrayList<TaskEncap>) tasksForVeh.clone() );
+        }
+
         return new CSP(
                 this.vehiclesList,
                 this.tasksToDo,
-                (ArrayList<ArrayList<TaskEncap>>) this.tasks.clone()
+                newTasks
         );
     }
 

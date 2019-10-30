@@ -66,6 +66,11 @@ public class CentralizedAgent implements CentralizedBehavior {
         long time_end = System.currentTimeMillis();
         long duration = time_end - time_start;
         System.out.println("The plan was generated in " + duration + " milliseconds.");
+
+        List<CSP> neigh = csp.getNeighbours(100);
+        for(CSP scsp: neigh) {
+            System.out.println(scsp.cost());
+        }
         return plans;
 
 //		System.out.println("Agent " + agent.id() + " has tasks " + tasks);
