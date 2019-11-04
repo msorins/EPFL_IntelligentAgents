@@ -13,6 +13,14 @@ public class CSP {
     private List<Vehicle> vehiclesList;
     private TaskSet tasksToDo;
 
+    static public final int RANDOM_SEED = 123456;
+
+    static private Random generator = new Random(RANDOM_SEED);
+
+    static public Random getRandom() {
+      return generator;
+    }
+
     // NumberVehicles list of tasks
     private ArrayList< ArrayList<TaskEncap> > tasks;
 
@@ -36,15 +44,33 @@ public class CSP {
             csp.getTasks().add(new ArrayList<>());
         }
 
-        int crtVehicleIndex = 0;
-        // Loop through tasks and assign each one to a vehicle (in order)
+        // Idea 1: Loop through tasks and assign each one to a vehicle (in order) that can handle the workload
+        // Idea 2: Send all the load to one vehicle
+
+        // Idea 3 (current): Randomly assign each of the task to a vehicle that can support the weight
+        Random r = getRandom();
         for(Task task: tasks) {
             // Attribute to "crtVehicleIndex" the current task
+            int crtVehicleIndex = r.nextInt(vehiclesList.size());
+
+            int checks = 0;
+            // While current vehicle cannot get the current task
+            while (vehiclesList.get(crtVehicleIndex).capacity() < task.weight && checks <= vehiclesList.size()) {
+              crtVehicleIndex += 1;
+              crtVehicleIndex %= csp.vehiclesList.size();
+              checks += 1;
+            }
+            if (checks > vehiclesList.size()) {
+              throw new RuntimeException("A task cannot be delivered by any " +
+                  "vehicle (its weight exceeds the capacity" +
+                  "of all the vehicles)");
+            }
+
+            // The initial plan will be to always deliver sequentially, so
+            // we know the current capacity is >= the task weight by the while loop above
             csp.getTasks().get(crtVehicleIndex).add( new TaskEncap(task, true) );
             csp.getTasks().get(crtVehicleIndex).add( new TaskEncap(task, false) );
 
-            crtVehicleIndex += 1;
-            crtVehicleIndex %= csp.vehiclesList.size();
         }
 
         return csp;
@@ -86,36 +112,38 @@ public class CSP {
             Integer crtCapacity = vehiclesList.get(i).capacity();
 
             for(int j = 0; j < tasks.get(i).size(); j++) {
-                if(tasks.get(i).get(j).pickUp) {
+                TaskEncap current = tasks.get(i).get(j);
+                if(current.pickUp) {
                     // If pick up task => just add it to memo
 
-                    // Return true if vehicle has more tasks than its capacity
-                    crtCapacity -= 1;
+                    // Return true if vehicle capacity has been exceeded
+                    crtCapacity -= current.task.weight;
                     if(crtCapacity < 0) {
                         return true;
                     }
 
                     // Return true if task was taken twice
-                    if(memo.containsKey(tasks.get(i).get(j).task)) {
+                    if(memo.containsKey(current.task)) {
                         return true;
                     }
 
                     // Add it to tasks
-                    memo.put(tasks.get(i).get(j).task, j);
+                    memo.put(current.task, j);
                 } else {
-                    crtCapacity += 1;
+                    // Deliver task
+                    crtCapacity += current.task.weight;
 
                     // Return true if task was not picked up
-                    if(!memo.containsKey(tasks.get(i).get(j).task)) {
+                    if(!memo.containsKey(current.task)) {
                         return true;
                     }
 
                     // Return true if task was already delivered
-                    if(memo.get(tasks.get(i).get(j).task) == -1) {
+                    if(memo.get(current.task) == -1) {
                         return true;
                     }
 
-                    memo.put(tasks.get(i).get(j).task, -1);
+                    memo.put(current.task, -1);
                 }
             }
         }
@@ -139,13 +167,16 @@ public class CSP {
 
     List<CSP> getNeighbours(int nrNeighbours) {
         ArrayList<CSP> csps = new ArrayList<>();
-        Random ran = new Random();
+        Random ran = getRandom();
 
         while(csps.size() < nrNeighbours) {
-            if(ran.nextBoolean()) {
+            if(ran.nextBoolean() || vehiclesList.size() == 1) {
                 // Swap two tasks from a vehicle
                 CSP newCsp = (CSP) this.clone();
                 int vehicleIndex = ran.nextInt(newCsp.getVehiclesList().size());
+                while (newCsp.getTasks().get(vehicleIndex).size() == 0) {
+                  vehicleIndex = ran.nextInt(newCsp.getVehiclesList().size());
+                }
                 int indexA = -1, indexB = -1;
                 while(indexA == indexB) {
                     indexA = ran.nextInt(newCsp.getTasks().get(vehicleIndex).size());
@@ -157,13 +188,16 @@ public class CSP {
                     csps.add(newCsp);
                 }
             } else {
-                // Swap pair of tasks between two vehicles
+                // Move one task from one vehicle to another
                 CSP newCsp = (CSP) this.clone();
 
                 // Indexes of targeted vehicles
-                int vehicleIndexA = -1, vehicleIndexB = -1;
+                int vehicleIndexA = ran.nextInt(newCsp.getVehiclesList().size());
+                while (newCsp.getTasks().get(vehicleIndexA).size() == 0) {
+                  vehicleIndexA = ran.nextInt(newCsp.getVehiclesList().size());
+                }
+                int vehicleIndexB = ran.nextInt(newCsp.getVehiclesList().size());
                 while(vehicleIndexA == vehicleIndexB) {
-                    vehicleIndexA = ran.nextInt(newCsp.getVehiclesList().size());
                     vehicleIndexB = ran.nextInt(newCsp.getVehiclesList().size());
                 }
 
@@ -171,20 +205,11 @@ public class CSP {
                 int posA = ran.nextInt(newCsp.tasks.get(vehicleIndexA).size());
                 Task taskA = newCsp.tasks.get(vehicleIndexA).get(posA).task;
 
-                int posB = ran.nextInt(newCsp.tasks.get(vehicleIndexB).size());
-                Task taskB = newCsp.tasks.get(vehicleIndexB).get(posB).task;
-
-                // Delete those tasks
+                // Delete the chosen task from vehicleA
                 newCsp.tasks.get(vehicleIndexA).remove(new TaskEncap(taskA, true));
                 newCsp.tasks.get(vehicleIndexA).remove(new TaskEncap(taskA, false));
 
-                newCsp.tasks.get(vehicleIndexB).remove(new TaskEncap(taskB, true));
-                newCsp.tasks.get(vehicleIndexB).remove(new TaskEncap(taskB, false));
-
-                // Add new tasks
-                newCsp.tasks.get(vehicleIndexA).add(new TaskEncap(taskB, true));
-                newCsp.tasks.get(vehicleIndexA).add(new TaskEncap(taskB, false));
-
+                // Move the chosen task to vehicleB
                 newCsp.tasks.get(vehicleIndexB).add(new TaskEncap(taskA, true));
                 newCsp.tasks.get(vehicleIndexB).add(new TaskEncap(taskA, false));
 

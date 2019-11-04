@@ -32,11 +32,11 @@ public class CentralizedAgent implements CentralizedBehavior {
     private Agent agent;
     private long timeout_setup;
     private long timeout_plan;
-    
+
     @Override
     public void setup(Topology topology, TaskDistribution distribution,
             Agent agent) {
-        
+
         // this code is used to get the timeouts
         LogistSettings ls = null;
         try {
@@ -45,12 +45,12 @@ public class CentralizedAgent implements CentralizedBehavior {
         catch (Exception exc) {
             System.out.println("There was a problem loading the configuration file.");
         }
-        
+
         // the setup method cannot last more than timeout_setup milliseconds
         timeout_setup = ls.get(LogistSettings.TimeoutKey.SETUP);
         // the plan method cannot execute more than timeout_plan milliseconds
         timeout_plan = ls.get(LogistSettings.TimeoutKey.PLAN);
-        
+
         this.topology = topology;
         this.distribution = distribution;
         this.agent = agent;
@@ -66,16 +66,18 @@ public class CentralizedAgent implements CentralizedBehavior {
         Integer nrNeighboursGenerated = 100;
         // END OF PARAMETERS
 
-        Random rand = new Random();
+        Random rand = CSP.getRandom();
         while(true) {
             CSP newCSP = csp.chooseBestNeighbour(nrNeighboursGenerated);
+            // Then with probability p it
+            // returns A, with probability 1 − p it returns the current assignment A_old
             if(rand.nextInt(100) <= p) {
                 csp = newCSP;
             }
 
             long time_end = System.currentTimeMillis();
             long duration = time_end - time_start;
-            if(duration> timeout_plan - 200) {
+            if(duration > timeout_plan - 200) {
                 break;
             }
             System.out.println("Duration: " + duration + "; Current cost: " + csp.cost());
