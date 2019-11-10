@@ -18,8 +18,7 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * A very simple auction agent that assigns all tasks to its first vehicle and
- * handles them sequentially.
+ * Our implementation of the AuctionAgent
  *
  */
 public class AuctionAgent implements AuctionBehavior {
@@ -47,7 +46,8 @@ public class AuctionAgent implements AuctionBehavior {
 
 	@Override
 	public void auctionResult(Task previous, int winner, Long[] bids) {
-		if (winner == agent.id()) {
+    System.out.println("Auction result. Winner " + winner + " got task " + previous.id);
+    if (winner == agent.id()) {
 			currentCity = previous.deliveryCity;
 		}
 	}
@@ -55,8 +55,10 @@ public class AuctionAgent implements AuctionBehavior {
 	@Override
 	public Long askPrice(Task task) {
 
-		if (vehicle.capacity() < task.weight)
-			return null;
+		if (vehicle.capacity() < task.weight) {
+      System.out.println("SmartAuction agent passes");
+      return null;
+    }
 
 		long distanceTask = task.pickupCity.distanceUnitsTo(task.deliveryCity);
 		long distanceSum = distanceTask
@@ -67,13 +69,14 @@ public class AuctionAgent implements AuctionBehavior {
 		double ratio = 1.0 + (random.nextDouble() * 0.05 * task.id);
 		double bid = ratio * marginalCost;
 
+    System.out.println("SmartAuction agent " + agent.id() + " has bid " + Math.round(bid) + " for task " + task.id);
 		return (long) Math.round(bid);
 	}
 
 	@Override
 	public List<Plan> plan(List<Vehicle> vehicles, TaskSet tasks) {
 
-//		System.out.println("Agent " + agent.id() + " has tasks " + tasks);
+    System.out.println("Agent " + agent.id() + " has tasks " + tasks);
 
 		Plan planVehicle1 = naivePlan(vehicle, tasks);
 
