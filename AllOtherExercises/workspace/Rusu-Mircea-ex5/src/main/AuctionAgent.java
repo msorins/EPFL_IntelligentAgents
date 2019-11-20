@@ -30,6 +30,9 @@ public class AuctionAgent implements AuctionBehavior {
 	private ArrayList<Task> taskSet;
 	private long totalWonBids = 0;
 
+	private boolean isPositiveStreak = true;
+	private int streak = 0;
+
 	private static long timeout_setup, timeout_plan, timeout_bid;
 
 	@Override
@@ -133,6 +136,30 @@ public class AuctionAgent implements AuctionBehavior {
       taskSet.add(new Task(taskSet.size(), previous.pickupCity, previous.deliveryCity, previous.reward, previous.weight));
       totalWonBids += bids[agent.id()];
 		}
+
+    // Get other id
+    int otherId = 0;
+    if(agent.id() == 1) {
+        otherId = 1;
+    }
+
+    // Increase / decrease our bid by taking into account other's bid
+      if(winner == agent.id()) {
+          // If we won -> we bid less -> try to increase how much we bid
+          if(!isPositiveStreak) {
+              isPositiveStreak = true;
+              streak = 0;
+          }
+          streak++;
+      } else {
+          // If we lost -> we bid to much -> ty to decrease how much we bid
+          if(isPositiveStreak) {
+              isPositiveStreak = false;
+              streak = 0;
+          }
+          streak++;
+      }
+
 	}
 
 	private TaskSet toTaskSet(List<Task> taskSet) {
@@ -142,13 +169,33 @@ public class AuctionAgent implements AuctionBehavior {
 
 	@Override
 	public Long askPrice(Task task) {
+	   // Parameters
+     double EXPECTED_REVENUE = 1.1;
+     double STREAK_ACCUMULATION_PERCENTAGE = 0.05;
+     double MAX_STREAK = 8;
 
+    // Add the possible task
 	  taskSet.add(new Task(taskSet.size(), task.pickupCity, task.deliveryCity, task.reward, task.weight));
 
-	  double expectedRevenue = 1.1;
-
+	  // Compute cost of the new plan
 	  double cost = getCost(agent.vehicles(), toTaskSet(taskSet), timeout_bid);
-	  double bid = cost * expectedRevenue - totalWonBids;
+
+	  // Compute the bid
+	  double bid = cost * EXPECTED_REVENUE - totalWonBids;
+
+	  // If bid is negative, we don't take the task
+    if(bid < 0) {
+        return null;
+    }
+ 	  // Increase decrease by a percentage
+      double bidBefore = bid;
+      if(isPositiveStreak) {
+        bid *= (1.0 + STREAK_ACCUMULATION_PERCENTAGE * Math.min(streak, MAX_STREAK));
+      } else {
+        bid *= (1.0 - STREAK_ACCUMULATION_PERCENTAGE * Math.min(streak, MAX_STREAK));
+      }
+
+      System.out.println("Bid before streak: " + bidBefore + ", after streak: " + bid + " of " + Math.min(streak, MAX_STREAK) + "(" + isPositiveStreak + ")");
 
 	  // Remove now this task, it was used just to simulate
     taskSet.remove(taskSet.size() - 1);
