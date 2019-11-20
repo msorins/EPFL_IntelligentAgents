@@ -6,6 +6,7 @@ import logist.LogistSettings;
 import logist.agent.Agent;
 import logist.behavior.AuctionBehavior;
 import logist.config.Parsers;
+import logist.plan.Action;
 import logist.plan.Plan;
 import logist.simulation.Vehicle;
 import logist.task.Task;
@@ -170,7 +171,7 @@ public class AuctionAgent implements AuctionBehavior {
 	@Override
 	public Long askPrice(Task task) {
 	   // Parameters
-     double EXPECTED_REVENUE = 1.1;
+     double EXPECTED_REVENUE = 1.2;
      double STREAK_ACCUMULATION_PERCENTAGE = 0.05;
      double MAX_STREAK = 8;
 
@@ -195,8 +196,18 @@ public class AuctionAgent implements AuctionBehavior {
         bid *= (1.0 - STREAK_ACCUMULATION_PERCENTAGE * Math.min(streak, MAX_STREAK));
       }
 
-      System.out.println("Bid before streak: " + bidBefore + ", after streak: " + bid + " of " + Math.min(streak, MAX_STREAK) + "(" + isPositiveStreak + ")");
+    // Check potential of current plan (to provide a discount to the bidding)
+    double expectProfits = (distribution.reward(task.pickupCity, task.deliveryCity) * distribution.probability(task.pickupCity, task.deliveryCity)) / distribution.weight(task.pickupCity, task.deliveryCity);
+//      double sumProb = 0.0;
+//    for(Task taskIter: taskSet) {
+//        expectProfits += distribution.reward(taskIter.pickupCity, taskIter.deliveryCity) * distribution.probability(taskIter.pickupCity, taskIter.deliveryCity);
+//        sumProb += distribution.probability(taskIter.pickupCity, taskIter.deliveryCity);
+//    }
+//    expectProfits /= sumProb;
+    System.out.println("Expected profits: " + expectProfits);
 
+
+    System.out.println("Bid before streak: " + bidBefore + ", after streak: " + bid + " of " + Math.min(streak, MAX_STREAK) + "(" + isPositiveStreak + ")");
 	  // Remove now this task, it was used just to simulate
     taskSet.remove(taskSet.size() - 1);
 
