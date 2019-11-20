@@ -67,8 +67,10 @@ public class AuctionAgent implements AuctionBehavior {
 	  List<Plan> bestPlans = getPlanInTimeout(vehicles, tasks, timeout);
 
 	  long cost = 0;
+	  int i = 0;
 	  for (Plan plan : bestPlans) {
-	    cost += plan.totalDistance(); /* total distance in km */
+	    cost += plan.totalDistance() * vehicles.get(i).costPerKm(); /* total distance in km */
+        i += 1;
     }
 
 	  return cost;
@@ -81,10 +83,11 @@ public class AuctionAgent implements AuctionBehavior {
 
     // PARAMETERS !!
     Integer p = 60;
-    Integer nrNeighboursGenerated = 100;
+    Integer nrNeighboursGenerated = 200;
     // END OF PARAMETERS
 
     Random rand = CSP.getRandom();
+    CSP bestCSP = null;
     while(true) {
       CSP newCSP = csp.chooseBestNeighbour(nrNeighboursGenerated);
       // Then with probability p it
@@ -95,16 +98,24 @@ public class AuctionAgent implements AuctionBehavior {
 
       long time_end = System.currentTimeMillis();
       long duration = time_end - time_start;
-      if(duration > timeout - 200) {
+      if(duration > timeout - 50) {
         break;
       }
-      System.out.println("Duration: " + duration + "; Current cost: " + csp.cost());
+
+      if(bestCSP == null || csp.cost() < bestCSP.cost() ) {
+          bestCSP = csp;
+          System.out.println("Found lower cost: " + bestCSP.cost());
+      }
+      if(duration % 100 == 0) {
+          System.out.println("Duration --> " + duration + "; Current cost: " + csp.cost());
+      }
+
     }
     long time_end = System.currentTimeMillis();
     long duration = time_end - time_start;
-    System.out.println("Best plan has cost of: " + csp.cost());
+    System.out.println("Best plan has cost of: " + bestCSP.cost());
     System.out.println("The plan was generated in " + duration + " milliseconds.");
-    return csp.toPlans();
+    return bestCSP.toPlans();
   }
 
   @Override
@@ -134,10 +145,9 @@ public class AuctionAgent implements AuctionBehavior {
 
 	  taskSet.add(new Task(taskSet.size(), task.pickupCity, task.deliveryCity, task.reward, task.weight));
 
-	  double expectedRevenue = 1.5;
+	  double expectedRevenue = 1.1;
 
 	  double cost = getCost(agent.vehicles(), toTaskSet(taskSet), timeout_bid);
-
 	  double bid = cost * expectedRevenue - totalWonBids;
 
 	  // Remove now this task, it was used just to simulate
