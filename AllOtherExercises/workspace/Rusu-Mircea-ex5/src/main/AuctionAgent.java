@@ -33,7 +33,8 @@ public class AuctionAgent implements AuctionBehavior {
 
 	private boolean isPositiveStreak = true;
 	private int streak = 0;
-
+	private double lastPlanCost;
+	private ArrayList<Double> adversaryMargin;
 	private static long timeout_setup, timeout_plan, timeout_bid;
 
 	@Override
@@ -133,6 +134,7 @@ public class AuctionAgent implements AuctionBehavior {
     for (int i = 0; i < bids.length; ++ i) {
       System.out.println("bids[" + i + "] = " + bids[i]);
     }
+
     if (winner == agent.id()) {
       taskSet.add(new Task(taskSet.size(), previous.pickupCity, previous.deliveryCity, previous.reward, previous.weight));
       totalWonBids += bids[agent.id()];
@@ -161,7 +163,42 @@ public class AuctionAgent implements AuctionBehavior {
           streak++;
       }
 
+      // Save adversary margin (can be positive or negative)
+      this.adversaryMargin.add( bids[otherId] - this.lastPlanCost );
 	}
+
+	private double getAdversaryMean() {
+	    double sum = 0;
+	    for(double margin: this.adversaryMargin) {
+	        sum += margin;
+      }
+
+	    return sum /= this.adversaryMargin.size();
+  }
+
+    public  double getAdversaryStd()
+    {
+        // Step 1:
+        double mean = this.getAdversaryMean();
+        double temp = 0;
+
+        for (int i = 0; i < this.adversaryMargin.size(); i++)
+        {
+            double val = this.adversaryMargin.get(i);
+
+            // Step 2:
+            double squrDiffToMean = Math.pow(val - mean, 2);
+
+            // Step 3:
+            temp += squrDiffToMean;
+        }
+
+        // Step 4:
+        double meanOfDiffs = (double) temp / (double) (this.adversaryMargin.size());
+
+        // Step 5:
+        return Math.sqrt(meanOfDiffs);
+    }
 
 	private TaskSet toTaskSet(List<Task> taskSet) {
 	  Task[] arr = new Task[taskSet.size()];
@@ -180,6 +217,7 @@ public class AuctionAgent implements AuctionBehavior {
 
 	  // Compute cost of the new plan
 	  double cost = getCost(agent.vehicles(), toTaskSet(taskSet), timeout_bid);
+	  this.lastPlanCost = cost;
 
 	  // Compute the bid
 	  double bid = cost * EXPECTED_REVENUE - totalWonBids;
