@@ -33,8 +33,8 @@ public class AuctionAgent implements AuctionBehavior {
 
 	private boolean isPositiveStreak = true;
 	private int streak = 0;
-	private double lastPlanCost;
-	private ArrayList<Double> adversaryMargin;
+	private double lastPlanCost = 0.0;
+	private ArrayList<Double> adversaryMargin = new ArrayList<>();
 	private static long timeout_setup, timeout_plan, timeout_bid;
 
 	@Override
@@ -142,7 +142,7 @@ public class AuctionAgent implements AuctionBehavior {
 
     // Get other id
     int otherId = 0;
-    if(agent.id() == 1) {
+    if(agent.id() == 0) {
         otherId = 1;
     }
 
@@ -165,7 +165,8 @@ public class AuctionAgent implements AuctionBehavior {
 
       // Save adversary margin (can be positive or negative)
       this.adversaryMargin.add( bids[otherId] - this.lastPlanCost );
-	}
+      System.out.println("Adversary std: " + this.getAdversaryStd());
+  }
 
 	private double getAdversaryMean() {
 	    double sum = 0;
