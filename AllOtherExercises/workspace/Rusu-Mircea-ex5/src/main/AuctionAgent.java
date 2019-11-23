@@ -16,6 +16,7 @@ import logist.topology.Topology;
 import logist.topology.Topology.City;
 
 import java.io.File;
+import java.math.BigDecimal;
 import java.util.*;
 
 /**
@@ -34,7 +35,9 @@ public class AuctionAgent implements AuctionBehavior {
 	private boolean isPositiveStreak = true;
 	private int streak = 0;
 	private double lastPlanCost = 0.0;
-	private ArrayList<Double> adversaryMargin = new ArrayList<>();
+	private ArrayList<Double> adversaryBids = new ArrayList<>();
+	private double sumAdversaryBids = 0;
+  private double sumAdversaryBidsSq = 0;
 	private static long timeout_setup, timeout_plan, timeout_bid;
 
 	@Override
@@ -103,7 +106,7 @@ public class AuctionAgent implements AuctionBehavior {
 
       long time_end = System.currentTimeMillis();
       long duration = time_end - time_start;
-      if(duration > timeout - 50) {
+      if(duration > timeout - 300) {
         break;
       }
 
@@ -164,28 +167,29 @@ public class AuctionAgent implements AuctionBehavior {
       }
 
       // Save adversary margin (can be positive or negative)
-      this.adversaryMargin.add( bids[otherId] - this.lastPlanCost );
-      System.out.println("Adversary std: " + this.getAdversaryStd());
+      this.adversaryBids.add( bids[otherId] - this.lastPlanCost );
+      this.sumAdversaryBids = this.sumAdversaryBids + bids[otherId];
+      this.sumAdversaryBidsSq = this.sumAdversaryBidsSq + bids[otherId] * bids[otherId];
   }
 
 	private double getAdversaryMean() {
 	    double sum = 0;
-	    for(double margin: this.adversaryMargin) {
+	    for(double margin: this.adversaryBids) {
 	        sum += margin;
       }
 
-	    return sum /= this.adversaryMargin.size();
+	    return sum / this.adversaryBids.size();
   }
 
-    public  double getAdversaryStd()
+    public double getAdversaryStd()
     {
         // Step 1:
         double mean = this.getAdversaryMean();
         double temp = 0;
 
-        for (int i = 0; i < this.adversaryMargin.size(); i++)
+        for (int i = 0; i < this.adversaryBids.size(); i++)
         {
-            double val = this.adversaryMargin.get(i);
+            double val = this.adversaryBids.get(i);
 
             // Step 2:
             double squrDiffToMean = Math.pow(val - mean, 2);
@@ -195,7 +199,7 @@ public class AuctionAgent implements AuctionBehavior {
         }
 
         // Step 4:
-        double meanOfDiffs = (double) temp / (double) (this.adversaryMargin.size());
+        double meanOfDiffs = temp / (double) (this.adversaryBids.size());
 
         // Step 5:
         return Math.sqrt(meanOfDiffs);
@@ -209,7 +213,7 @@ public class AuctionAgent implements AuctionBehavior {
 	@Override
 	public Long askPrice(Task task) {
 	   // Parameters
-     double EXPECTED_REVENUE = 1.2;
+     double EXPECTED_MARGIN = 1.2;
      double STREAK_ACCUMULATION_PERCENTAGE = 0.05;
      double MAX_STREAK = 8;
 
@@ -221,7 +225,7 @@ public class AuctionAgent implements AuctionBehavior {
 	  this.lastPlanCost = cost;
 
 	  // Compute the bid
-	  double bid = cost * EXPECTED_REVENUE - totalWonBids;
+	  double bid = cost * EXPECTED_MARGIN - totalWonBids;
 
 	  // If bid is negative, we don't take the task
     if(bid < 0) {
@@ -251,6 +255,20 @@ public class AuctionAgent implements AuctionBehavior {
     taskSet.remove(taskSet.size() - 1);
 
     System.out.println("SmartAuction agent " + agent.id() + " has bid " + Math.round(bid) + " for task " + task.id);
+
+    double mean = sumAdversaryBids / this.adversaryBids.size();
+    double std = sumAdversaryBidsSq / this.adversaryBids.size() + mean * mean;
+    if (this.adversaryBids.size() >= 3) {
+      // if my_marginal_cost is lower than other_next_bid_estimate-const*variance
+      // bid with something between marginal cost and lower than other_next_bid_estimate-const*variance
+      if (bid < mean - 2 * std) {
+        bid = mean - 2 * std;
+      } else {
+        // else
+        // bid with something higher than other_next_bid_estimate+const*variance
+        bid = Math.max(bid, mean + std);
+      }
+    }
 
 		return (long) Math.round(bid);
 	}
