@@ -256,17 +256,17 @@ public class AuctionAgent implements AuctionBehavior {
 
     System.out.println("SmartAuction agent " + agent.id() + " has bid " + Math.round(bid) + " for task " + task.id);
 
-    double mean = sumAdversaryBids / this.adversaryBids.size();
-    double std = sumAdversaryBidsSq / this.adversaryBids.size() + mean * mean;
     if (this.adversaryBids.size() >= 3) {
+      double mean = sumAdversaryBids / this.adversaryBids.size();
+      double std = sumAdversaryBidsSq / this.adversaryBids.size() + mean * mean;
       // if my_marginal_cost is lower than other_next_bid_estimate-const*variance
       // bid with something between marginal cost and lower than other_next_bid_estimate-const*variance
       if (bid < mean - 2 * std) {
         bid = mean - 2 * std;
-      } else {
-        // else
-        // bid with something higher than other_next_bid_estimate+const*variance
-        bid = Math.max(bid, mean + std);
+      }
+
+      if (bid > mean + 2 * std) {
+        bid = mean;
       }
     }
 
