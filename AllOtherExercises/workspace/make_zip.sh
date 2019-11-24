@@ -1,1 +1,1 @@
-zip -r Rusu-Mircea-ex4.zip Rusu-Mircea-ex4 -x Rusu-Mircea-ex4
+zip -r Rusu-Mircea-ex5.zip Rusu-Mircea-ex5
